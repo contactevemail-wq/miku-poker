@@ -111,6 +111,9 @@ function CreateForm({ onDone, onCancel }) {
             <NumField label="블라인드 상승 배율" value={s.blindMult} onChange={(v) => set('blindMult', v)} min={1} step={0.5} />
             <NumField label="리바이 최대 횟수" value={s.rebuyMax} onChange={(v) => set('rebuyMax', v)} />
           </div>
+          <div className="settings-grid">
+            <NumField label="앤티 (0=없음)" value={s.ante || 0} onChange={(v) => set('ante', v)} min={0} step={10} />
+          </div>
           <div className="field">
             <label>리바이 허용</label>
             <div className="segment">

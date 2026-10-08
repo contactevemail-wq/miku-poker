@@ -38,6 +38,7 @@ export class Table {
     this.actionIdx = -1;
     this.sb = opts.sb ?? 50;
     this.bb = opts.bb ?? 100;
+    this.ante = opts.ante ?? 0;
     this.log = [];
     this.winners = [];
   }
@@ -83,6 +84,11 @@ export class Table {
     const dealer = ps[dIdx < 0 ? 0 : dIdx];
     const sbP = ps[(ps.indexOf(dealer) + 1) % n];
     const bbP = ps[(ps.indexOf(dealer) + 2) % n] ?? sbP;
+
+    // 앤티: 전원 강제 베팅 (팟 직행)
+    if (this.ante > 0) {
+      for (const p of ps) this.postAnte(p, this.ante);
+    }
 
     this.postBlind(n === 2 ? dealer : sbP, this.sb);
     this.postBlind(n === 2 ? sbP : bbP, this.bb);
