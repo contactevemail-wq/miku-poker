@@ -11,6 +11,7 @@ try { rmSync('/tmp/fake-skins', { recursive: true }); } catch {}
 
 const sm = await import('./skin-manager.js');
 const db = await import('./db.js');
+await db.initPromise;
 
 let pass = 0, fail = 0;
 const ok = (c, n) => { c ? pass++ : (fail++, console.log('FAIL:', n)); };
@@ -93,13 +94,13 @@ ok(keys.includes('goodskin') && scanned.find((s) => s.key === 'goodskin').valid,
 ok(scanned.find((s) => s.key === 'badskin') && !scanned.find((s) => s.key === 'badskin').valid, 'badskin 무효 판정');
 
 // 9. DB upsert/toggle/list
-db.upsertSkin('goodskin', '테스트 스킨');
-db.upsertSkin('goodskin', '개명된 스킨'); // 이름 갱신
-let skins = db.listSkins();
+await db.upsertSkin('goodskin', '테스트 스킨');
+await db.upsertSkin('goodskin', '개명된 스킨'); // 이름 갱신
+let skins = await db.listSkins();
 ok(skins.find((s) => s.key === 'goodskin')?.name === '개명된 스킨', 'upsert 이름 갱신');
-db.setSkinEnabled('goodskin', false);
-ok(db.listSkins().find((s) => s.key === 'goodskin').enabled === 0, '비활성화');
-try { db.setSkinEnabled('nope', true); ok(false, '없는 스킨 토글 차단'); }
+await db.setSkinEnabled('goodskin', false);
+ok((await db.listSkins()).find((s) => s.key === 'goodskin').enabled === 0, '비활성화');
+try { await db.setSkinEnabled('nope', true); ok(false, '없는 스킨 토글 차단'); }
 catch (e) { ok(e.message.includes('없는 스킨'), '없는 스킨 토글 차단'); }
 
 // 10. 실제 skins/ 폴더 스캔 (_template만 있으면 빈 결과)

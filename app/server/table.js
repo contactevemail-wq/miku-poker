@@ -47,6 +47,7 @@ export class Table {
     this.players.push({
       id, name, stack, bet: 0, totalBet: 0,
       folded: false, allin: false, hole: [], acted: false, sittingOut: false,
+      isBot: !!profile.isBot,
       // 프로필 스냅샷 (13-1: publicState 아바타 표시용 — index.js start_game에서 전달)
       avatar: profile.avatar || 'miku1',
       color: profile.color || '#22d3ee',
@@ -338,6 +339,7 @@ export class Table {
       players: this.players.map((p) => ({
         id: p.id, name: p.name, stack: p.stack, bet: p.bet,
         avatar: p.avatar, color: p.color, title: p.title, equipped: p.equipped,
+        isBot: !!p.isBot,
         folded: p.folded, allin: p.allin, sittingOut: p.sittingOut,
         hole: p.id === viewerId ? p.hole : p.hole.map(() => null),
         holeCount: p.hole.length,
@@ -491,6 +493,7 @@ export class BlackjackTable {
       id, name, stack, bet: 0, hand: [],
       stood: false, busted: false, blackjack: false, doubled: false,
       done: false, out: false, sittingOut: false,
+      isBot: !!profile.isBot,
       // 프로필 스냅샷 (13-1: publicState 아바타 표시용)
       avatar: profile.avatar || 'miku1',
       color: profile.color || '#22d3ee',
@@ -676,6 +679,7 @@ export class BlackjackTable {
       players: this.players.map((p) => ({
         id: p.id, name: p.name, stack: p.stack, bet: p.bet,
         avatar: p.avatar, color: p.color, title: p.title, equipped: p.equipped,
+        isBot: !!p.isBot,
         folded: false, allin: false, sittingOut: !!p.sittingOut,
         hand: p.hand,
         handCount: p.hand.length,
@@ -826,6 +830,7 @@ export class SevenStudTable extends Table {
       players: this.players.map((p) => ({
         id: p.id, name: p.name, stack: p.stack, bet: p.bet,
         avatar: p.avatar, color: p.color, title: p.title, equipped: p.equipped,
+        isBot: !!p.isBot,
         folded: p.folded, allin: p.allin, sittingOut: p.sittingOut,
         hand: p.hole.map((c) => (c.up || p.id === viewerId || done) ? { r: c.r, s: c.s, up: c.up } : null),
         handCount: p.hole.length,

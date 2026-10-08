@@ -10,6 +10,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { GAME_TABLES, STREET } from './table.js';
 import { scanSkins, validateSkin } from './skin-manager.js';
+import { decideBotAction, chooseDiscardIndex } from './bot.js';
 import * as db from './db.js';
 
 const execFileAsync = promisify(execFile);
@@ -40,7 +41,7 @@ app.get('/api/records', async (req, res) => {
 app.get('/api/skins', async (req, res) => {
   // 내장 2종(클래식=SVG 드로잉, MIKU=아트워크) + 스캔 등록된 유효 스킨
   const builtinKeys = new Set(['classic', 'miku']);
-  const custom = await db.listSkins()
+  const custom = (await db.listSkins())
     .filter((s) => s.enabled && !builtinKeys.has(s.key))
     .map((s) => ({ key: s.key, name: s.name }));
   res.json([
@@ -161,7 +162,7 @@ function genCode() {
   return code;
 }
 
-async function getRoomBySocket(socket) {
+function getRoomBySocket(socket) {
   for (const room of rooms.values())
     if (room.players.some((p) => p.socketId === socket.id)) return room;
   return null;
@@ -172,7 +173,7 @@ function lobbyState(room) {
     code: room.code, name: room.name, gameType: room.gameType,
     hostId: room.hostId, settings: room.settings,
     state: room.state, hasPassword: !!room.password,
-    players: room.players.map((p) => ({ userId: p.userId, name: p.name, ready: p.ready })),
+    players: room.players.map((p) => ({ userId: p.userId, name: p.name, ready: p.ready, isBot: !!p.isBot })),
   };
 }
 
@@ -203,7 +204,8 @@ async function syncTableProfile(room, userId) {
 async function clearTimers(room) {
   if (room.actionTimer) clearTimeout(room.actionTimer);
   if (room.blindTimer) clearInterval(room.blindTimer);
-  room.actionTimer = null; room.blindTimer = null;
+  if (room.botTimer) clearTimeout(room.botTimer);
+  room.actionTimer = null; room.blindTimer = null; room.botTimer = null;
 }
 
 /* ---------- 게임 진행 ---------- */
@@ -214,6 +216,7 @@ function startHand(room) {
   room.handStartAt = Date.now();
   broadcastTable(room);
   armTimer(room);
+  scheduleBotMove(room); // 첫 액션이 봇일 수 있음
   // 블라인드 상승 타이머
   clearInterval(room.blindTimer);
   const mins = room.settings.blindIntervalMin;
@@ -275,14 +278,65 @@ function armTimer(room) {
   return armActionTimer(room);
 }
 
+/* ---------- 포커 봇 턴 스케줄링 (13-1) ---------- */
+function scheduleBotMove(room) {
+  clearTimeout(room.botTimer);
+  const t = room.table;
+  if (!t || room.state !== 'playing') return;
+  if (t.street === STREET.DONE || t.street === STREET.WAITING) return;
+
+  // 파인애플 디스카드: 봇 자동 버림
+  if (t.street === STREET.DISCARD) {
+    const needDiscard = t.players.filter(
+      (p) => p.isBot && !p.folded && !p.sittingOut && !p.allin && p.hole.length === 3
+    );
+    if (!needDiscard.length) return;
+    room.botTimer = setTimeout(() => {
+      try {
+        for (const p of needDiscard) {
+          if (room.table !== t || t.street !== STREET.DISCARD) break;
+          const cur = t.players.find((x) => x.id === p.id);
+          if (!cur || cur.hole.length !== 3) continue;
+          t.discard(p.id, chooseDiscardIndex(cur.hole));
+        }
+      } catch { /* ignore */ }
+      afterAct(room);
+    }, 800 + Math.random() * 800);
+    return;
+  }
+
+  const pid = t.players[t.actionIdx % t.players.length]?.id;
+  const tp = t.players.find((p) => p.id === pid);
+  if (!tp || !tp.isBot) return;
+  if (tp.folded || tp.allin || tp.sittingOut) return;
+  if (t.gameType === 'blackjack' && (tp.done || tp.busted || tp.out)) return;
+
+  // 인간처럼 보이게 1~2초 딜레이
+  room.botTimer = setTimeout(() => {
+    if (room.table !== t || room.state !== 'playing') return;
+    try {
+      const d = decideBotAction(t, pid, room.botDifficulty || 'normal');
+      t.act(pid, d.action, d.amount);
+    } catch (e) {
+      try {
+        const p2 = t.players.find((x) => x.id === pid);
+        t.act(pid, t.toCall(p2) === 0 ? 'check' : 'fold');
+      } catch { /* ignore */ }
+    }
+    afterAct(room);
+  }, 1000 + Math.random() * 1000);
+}
+
 async function afterAct(room) {
   const t = room.table;
   broadcastTable(room);
   if (t.street === STREET.DONE) {
     clearTimeout(room.actionTimer);
+    clearTimeout(room.botTimer);
     onHandEnd(room);
   } else {
     armTimer(room);
+    scheduleBotMove(room);
   }
 }
 
@@ -334,6 +388,12 @@ function onHandEnd(room) {
 
 async function endGame(room) {
   const profits = await settleStacksToAccounts(room);
+  // 봇 결과 추가 (13-1): DB 정산 없이 profit만 계산, 이름에 🤖 포함
+  for (const p of room.table.players) {
+    if (!p.isBot) continue;
+    const paid = room.buyinPaid.get(p.id) ?? room.settings.buyin;
+    profits.push({ userId: p.id, name: p.name, stack: p.stack, profit: p.stack - paid, isBot: true });
+  }
   let ranked;
   if (room.settings.mode === 'series' && room.settings.finalScoring === 'coins') {
     ranked = profits
@@ -370,6 +430,14 @@ io.on('connection', (socket) => {
     if (!u || !u.approved) return socket.emit('auth_error', '승인되지 않은 계정이에요');
     userId = id;
     userSockets.set(id, socket);
+    // 재연결 시 방 플레이어의 socketId 갱신 (호스트 판정 등 정상 동작용)
+    for (const room of rooms.values()) {
+      const p = room.players.find((p) => p.userId === id);
+      if (p) {
+        p.socketId = socket.id;
+        socket.join(room.code);
+      }
+    }
     socket.emit('auth_ok', db.sanitize(u));
   });
 
@@ -396,9 +464,22 @@ io.on('connection', (socket) => {
     const pw = String(settings?.password || '').slice(0, 20);
     room.password = pw || null;
     delete room.settings.password;
+    // 포커 봇 (13-1): botCount 0~8, botDifficulty easy/normal/hard
+    const botCount = Math.max(0, Math.min(8, parseInt(settings?.botCount) || 0));
+    const botDifficulty = ['easy', 'normal', 'hard'].includes(settings?.botDifficulty)
+      ? settings.botDifficulty : 'normal';
+    room.botDifficulty = botDifficulty;
+    room.settings.botCount = Math.min(botCount, 8); // 표시용
+    room.settings.botDifficulty = botDifficulty;
     rooms.set(code, room);
     socket.join(code);
     room.players.push({ userId, name: u.name, socketId: socket.id, ready: true });
+    for (let i = 0; i < room.settings.botCount && room.players.length < 9; i++) {
+      room.players.push({
+        userId: `bot${i + 1}`, name: `🤖 봇${i + 1}`, socketId: null,
+        ready: true, isBot: true,
+      });
+    }
     broadcastRoom(room);
     cb({ code });
   });
@@ -461,6 +542,14 @@ io.on('connection', (socket) => {
     const table = new Tbl({ sb: s.sb, bb: s.bb, pineappleVariant: s.pineappleVariant, blackjackBet: s.blackjackBet, studAnte: s.studAnte });
     room.buyinPaid = new Map();
     for (const p of room.players) {
+      if (p.isBot) {
+        // 봇: DB 없이 바이인만큼 스택 (인간과 동일, 무한 칩 아님)
+        room.buyinPaid.set(p.userId, s.buyin);
+        table.addPlayer(p.userId, p.name, s.buyin, {
+          isBot: true, avatar: 'miku1', color: '#22d3ee', title: '', equipped: '{}',
+        });
+        continue;
+      }
       const u = await db.getUser(p.userId);
       if (!u || u.chips < s.buyin) {
         socket.emit('notice', `${p.name}님 칩 부족으로 제외돼요`);

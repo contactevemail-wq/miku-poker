@@ -58,6 +58,16 @@ const server = spawn('node', ['index.js'], {
 });
 await new Promise((r) => setTimeout(r, 4000));
 
+// 서버 준비 대기 (health check 재시도)
+const URL0 = `http://localhost:${PORT}`;
+for (let i = 0; i < 30; i++) {
+  try {
+    const r = await fetch(URL0 + '/api/skins');
+    if (r.ok) break;
+  } catch {}
+  await new Promise((r) => setTimeout(r, 1000));
+}
+
 try {
   const URL = `http://localhost:${PORT}`;
   const api = async (p, b) => (await fetch(URL + p, {
