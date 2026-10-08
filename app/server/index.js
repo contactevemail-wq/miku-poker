@@ -600,10 +600,25 @@ io.on('connection', (socket) => {
     room.dealerIdx = -1;
     if (s.mode === 'series') room.series = { current: 0, total: s.seriesCount, coins: {} };
     broadcastRoom(room);
-    try {
-      startHand(room);
-      cb?.({ ok: true });
-    } catch (e) { cb?.({ error: e.message }); }
+    // 첫 핸드 보호: 클라이언트 로딩 시간 확보 (10초 카운트다운)
+    // 마스터 피드백: "로딩이 오래걸려서 첫 판은 항상 날아감"
+    let countdown = 10;
+    io.to(room.code).emit('notice', `게임 시작까지 ${countdown}초...`);
+    room.startCountdown = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(room.startCountdown);
+        room.startCountdown = null;
+        try {
+          startHand(room);
+        } catch (e) {
+          io.to(room.code).emit('notice', e.message);
+        }
+      } else {
+        io.to(room.code).emit('notice', `게임 시작까지 ${countdown}초...`);
+      }
+    }, 1000);
+    cb?.({ ok: true });
   });
 
   socket.on('act', async ({ action, amount }) => {
