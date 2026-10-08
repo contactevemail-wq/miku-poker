@@ -44,7 +44,7 @@ function buzz(ms = 12) {
  * @param faceUp 처음부터 앞면
  * @param skin 'classic' | 'miku' — 카드 스킨 (13-3이 back.png 에셋을 만들면 교체)
  */
-export default function Card({ card, peekable = false, faceUp = false, small = false, skin = 'classic' }) {
+export default function Card({ card, peekable = false, faceUp = false, small = false, skin = 'classic', onReveal }) {
   const [lift, setLift] = useState(0);       // 0~1 들림 정도
   const [revealed, setRevealed] = useState(faceUp);
   // 카드가 바뀌면(새 핸드) 공개 상태 리셋 — 쪼기 전 노출 방지
@@ -63,9 +63,9 @@ export default function Card({ card, peekable = false, faceUp = false, small = f
     setFlipping(true);
     peelSound(0.9);
     buzz(20);
-    setTimeout(() => { setRevealed(true); setLift(0); }, 150);
+    setTimeout(() => { setRevealed(true); setLift(0); if (onReveal) onReveal(); }, 150);
     setTimeout(() => setFlipping(false), 320);
-  }, []);
+  }, [onReveal]);
 
   const onPointerDown = (e) => {
     if (!peekable || revealed || !card) return;
