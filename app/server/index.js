@@ -566,7 +566,10 @@ io.on('connection', (socket) => {
   socket.on('start_game', async (cb) => {
     const room = getRoomBySocket(socket);
     if (!room || room.hostId !== userId) return cb?.({ error: '호스트만 시작할 수 있어요' });
-    if (room.players.length < 2) return cb?.({ error: '2명 이상 필요해요' });
+    if (room.players.length < 2) {
+      console.log(`[start_game] 인원 부족: room=${room.code} players=${room.players.length} (${room.players.map(p => p.name).join(',')})`);
+      return cb?.({ error: `2명 이상 필요해요 (현재 ${room.players.length}명)` });
+    }
     const s = room.settings;
     // gameType → 테이블 클래스 (미등록 게임은 홀덤으로 폴백)
     const Tbl = GAME_TABLES[room.gameType] || GAME_TABLES.holdem;
