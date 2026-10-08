@@ -68,17 +68,42 @@ export default function Table({ user, room, onLeave }) {
   const prevBets = useRef({});
   const tableRef = useRef(null);
   const [dealing, setDealing] = useState(false);
+  // ✨ 애니메이션 ON/OFF (마스터 요청, localStorage 저장)
+  const [fxOn, setFxOn] = useState(() => {
+    try { return localStorage.getItem('poker-fx') !== 'off'; } catch { return true; }
+  });
+  const fxOnRef = useRef(fxOn);
+  const fxTimers = useRef(new Set());
+  const toggleFx = useCallback(() => {
+    const next = !fxOnRef.current;
+    fxOnRef.current = next;
+    setFxOn(next);
+    try { localStorage.setItem('poker-fx', next ? 'on' : 'off'); } catch {}
+    if (!next) setChipFx([]);
+    document.body.classList.toggle('no-fx', !next);
+  }, []);
+  useEffect(() => {
+    document.body.classList.toggle('no-fx', !fxOnRef.current);
+  }, []);
 
   const spawnFx = useCallback((fx) => {
+    if (!fxOnRef.current) return; // 꺼져 있으면 아무 작업도 안 함
     const id = ++fxSeq.current;
     const delay = fx.delay || 0;
     if (delay > 0) {
-      setTimeout(() => spawnFx({ ...fx, delay: 0 }), delay);
+      const tid = setTimeout(() => spawnFx({ ...fx, delay: 0 }), delay);
+      fxTimers.current.add(tid);
       return;
     }
     setChipFx((list) => [...list.slice(-11), { ...fx, id }]);
-    setTimeout(() => setChipFx((list) => list.filter((c) => c.id !== id)), 900);
+    const tid = setTimeout(() => {
+      fxTimers.current.delete(tid);
+      setChipFx((list) => list.filter((c) => c.id !== id));
+    }, 900);
+    fxTimers.current.add(tid);
   }, []);
+  // 언마운트 시 타이머 정리
+  useEffect(() => () => { fxTimers.current.forEach(clearTimeout); fxTimers.current.clear(); }, []);
 
   useEffect(() => {
     if (!table) return;
@@ -87,8 +112,14 @@ export default function Table({ user, room, onLeave }) {
       setHandKey((k) => k + 1);
       // 🃏 새 핸드 딜링 애니메이션
       prevBets.current = {};
-      setDealing(true);
-      setTimeout(() => setDealing(false), 1300);
+      if (fxOnRef.current) {
+        setDealing(true);
+        const tid = setTimeout(() => {
+          fxTimers.current.delete(tid);
+          setDealing(false);
+        }, 1300);
+        fxTimers.current.add(tid);
+      }
     }
     prevStreet.current = s;
   }, [table]);
@@ -189,7 +220,13 @@ export default function Table({ user, room, onLeave }) {
     <div className="table-wrap">
       <div className="topbar">
         <b>🃏 {room.name}</b>
-        <button onClick={onLeave}>나가기</button>
+        <div className="row" style={{ flex: '0 0 auto', gap: 8 }}>
+          <button onClick={toggleFx} title={fxOn ? '애니메이션 끄기' : '애니메이션 켜기'}
+            style={{ padding: '10px 12px', opacity: fxOn ? 1 : 0.55 }}>
+            {fxOn ? '✨' : '🚫'}
+          </button>
+          <button onClick={onLeave}>나가기</button>
+        </div>
       </div>
       {series && (
         <div className="series-hud">
@@ -250,8 +287,8 @@ export default function Table({ user, room, onLeave }) {
                 {holeCards.map((c, j) => (
                   // 내 카드는 하단 쪼기 영역에서 확인 → 좌석에서는 뒷면만 표시
                   // (마스터 버그: 쪼기 전에 좌석에 앞면으로 노출됨)
-                  <span key={j} className={dealing ? 'card-deal' : ''}
-                    style={dealing ? { animationDelay: `${(i * 60 + j * 90) % 600}ms` } : undefined}>
+                  <span key={j} className={dealing && fxOn ? 'card-deal' : ''}
+                    style={(dealing && fxOn) ? { animationDelay: `${(i * 60 + j * 90) % 600}ms` } : undefined}>
                     {isMe ? <CardBack skin={skin} />
                     : c ? <Card card={c} faceUp skin={skin} />
                        : <CardBack skin={skin} />}
@@ -279,8 +316,8 @@ export default function Table({ user, room, onLeave }) {
         <div style={{ background: 'rgba(0,0,0,.4)', padding: '8px' }}>
           <div className="my-hand">
             {me.hole.map((c, i) => (
-              <span key={`${handKey}-${i}`} className={dealing ? 'card-deal' : ''}
-                style={dealing ? { animationDelay: `${i * 110}ms` } : undefined}>
+              <span key={`${handKey}-${i}`} className={dealing && fxOn ? 'card-deal' : ''}
+                style={(dealing && fxOn) ? { animationDelay: `${i * 110}ms` } : undefined}>
                 <Card card={c} peekable skin={skin} />
               </span>
             ))}

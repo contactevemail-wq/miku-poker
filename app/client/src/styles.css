@@ -377,6 +377,8 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 @media (prefers-reduced-motion: reduce) {
   .chip-fly, .card-deal { animation: none; }
 }
+/* ✨ 토글 OFF 시 애니메이션 완전 비활성화 */
+body.no-fx .chip-fly, body.no-fx .card-deal { animation: none !important; display: none !important; }
 
 /* ---------- 테이블 추가 ---------- */
 .my-hand { display: flex; gap: 10px; justify-content: center; margin: 10px 0; }
