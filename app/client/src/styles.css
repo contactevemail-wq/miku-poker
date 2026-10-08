@@ -1,9 +1,15 @@
-/* 🃏 포커 웹앱 스타일 — 펠트 테이블 테마 */
+/* 🃏 포커 웹앱 스타일 — 럭셔리 다크 카지노 테마 (마스터 승인 시안) */
 
 :root {
-  --felt: #0d5c34;
-  --felt-dark: #083d23;
+  --felt: #0e5e36;
+  --felt-dark: #072b1a;
+  --felt-deep: #04170e;
   --gold: #f5c542;
+  --gold-light: #fde68a;
+  --gold-dark: #b45309;
+  --gold-gradient: linear-gradient(135deg, #fde68a 0%, #f5c542 40%, #d97706 100%);
+  --bg: #070b09;
+  --panel: rgba(16, 22, 19, 0.88);
   --card-w: 84px;
 }
 
@@ -11,7 +17,7 @@
 body {
   margin: 0;
   font-family: 'Pretendard', -apple-system, 'Segoe UI', sans-serif;
-  background: #0a0f0d;
+  background: radial-gradient(ellipse at 50% 0%, #0d1512 0%, var(--bg) 60%);
   color: #fff;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
@@ -21,33 +27,40 @@ body {
 button {
   font-family: inherit;
   cursor: pointer;
-  border: none;
-  border-radius: 10px;
+  border: 1px solid rgba(245, 197, 66, 0.25);
+  border-radius: 12px;
   padding: 10px 18px;
   font-size: 15px;
-  font-weight: 600;
-  background: #1f2937;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)), #1a231f;
   color: #fff;
-  transition: transform 0.1s, filter 0.15s;
+  transition: transform 0.1s, filter 0.15s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
 }
-button:hover { filter: brightness(1.15); }
+button:hover { filter: brightness(1.2); box-shadow: 0 4px 14px rgba(0,0,0,.5); }
 button:active { transform: scale(0.97); }
-button.primary { background: linear-gradient(135deg, #10b981, #059669); }
-button.gold { background: linear-gradient(135deg, #f5c542, #d97706); color: #1a1a1a; }
-button.danger { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.primary { background: linear-gradient(135deg, #10b981, #047857); border-color: rgba(110,231,183,.4); }
+button.gold {
+  background: var(--gold-gradient); color: #1a1a1a; border: none;
+  box-shadow: 0 4px 16px rgba(245, 197, 66, 0.35), inset 0 1px 0 rgba(255,255,255,.5);
+  text-shadow: 0 1px 0 rgba(255,255,255,.3);
+}
+button.gold:hover { box-shadow: 0 6px 22px rgba(245, 197, 66, 0.5), inset 0 1px 0 rgba(255,255,255,.5); }
+button.danger { background: linear-gradient(135deg, #ef4444, #991b1b); border-color: rgba(248,113,113,.4); }
+button:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
 input, select {
   font-family: inherit;
-  border-radius: 10px;
-  border: 1px solid #374151;
-  background: #111827;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 197, 66, 0.2);
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent), #0e1411;
   color: #fff;
   padding: 10px 14px;
   font-size: 15px;
   width: 100%;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.4);
 }
-input:focus, select:focus { outline: 2px solid #10b981; }
+input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6); box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.15), inset 0 2px 6px rgba(0,0,0,.4); }
 
 .card-page {
   min-height: 100vh;
@@ -61,13 +74,15 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   background: radial-gradient(ellipse at center, #0d5c34 0%, #06130c 75%);
 }
 .panel {
-  background: rgba(17, 24, 39, 0.92);
-  border: 1px solid #1f2937;
-  border-radius: 20px;
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(245, 197, 66, 0.18);
+  border-radius: 24px;
   padding: 32px;
   width: 100%;
   max-width: 440px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255,255,255,.06);
 }
 .panel h1 { margin: 0 0 6px; font-size: 28px; }
 .panel h1 .suit { color: var(--gold); }
@@ -83,22 +98,23 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 .playing-card {
   width: var(--card-w);
   aspect-ratio: 5 / 7;
-  border-radius: 8px;
+  border-radius: 10px;
   position: relative;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.5));
 }
 .playing-card .face, .playing-card .back-layer {
   position: absolute; inset: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
 }
 .playing-card .face {
-  background: linear-gradient(145deg, #ffffff, #e8e8e8);
+  background: linear-gradient(150deg, #ffffff 0%, #f4f1ea 60%, #e2ddd2 100%);
   color: #111;
-  box-shadow: 0 2px 8px rgba(0,0,0,.45);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.9);
 }
 .playing-card .face.red { color: #d61f2c; }
 .playing-card .corner {
@@ -121,9 +137,9 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 }
 .playing-card .back-layer {
   background:
-    repeating-linear-gradient(45deg, #1e3a8a 0 8px, #1e40af 8px 16px);
+    repeating-linear-gradient(45deg, #14305e 0 8px, #1e4a8f 8px 16px);
   border: 4px solid #f8fafc;
-  box-shadow: 0 2px 8px rgba(0,0,0,.45);
+  box-shadow: inset 0 0 0 2px rgba(245, 197, 66, 0.55), inset 0 0 22px rgba(0,0,0,.35);
   will-change: transform, clip-path, box-shadow;
 }
 .playing-card.squeezing .back-layer { transition: none; }
@@ -148,11 +164,34 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   position: relative;
   flex: 1;
   margin: 12px;
-  border: 10px solid #5b3413;
+  border: 10px solid #201510;
   border-radius: 50% / 50%;
-  background: radial-gradient(ellipse at center, #107a45 0%, var(--felt) 70%);
-  box-shadow: inset 0 0 80px rgba(0,0,0,.5);
+  background:
+    radial-gradient(ellipse at center, #128a4c 0%, var(--felt) 55%, var(--felt-dark) 85%, var(--felt-deep) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(245, 197, 66, 0.75),
+    inset 0 0 90px rgba(0,0,0,.65),
+    inset 0 2px 12px rgba(255,255,255,.05),
+    0 12px 44px rgba(0,0,0,.6),
+    0 0 28px rgba(245, 197, 66, 0.12);
   min-height: 420px;
+}
+/* 바깥 골드 트림 */
+.poker-table::before {
+  content: '';
+  position: absolute; inset: -15px;
+  border-radius: 50% / 50%;
+  border: 2px solid rgba(245, 197, 66, 0.55);
+  box-shadow: 0 0 16px rgba(245, 197, 66, 0.25);
+  pointer-events: none;
+}
+/* 안쪽 헤어라인 */
+.poker-table::after {
+  content: '';
+  position: absolute; inset: 10px;
+  border-radius: 50% / 50%;
+  border: 1px solid rgba(245, 197, 66, 0.22);
+  pointer-events: none;
 }
 .seat {
   position: absolute;
@@ -165,16 +204,28 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; font-weight: 800;
-  border: 3px solid #374151;
+  border: 3px solid rgba(255,255,255,.18);
   background: #1f2937;
+  box-shadow: 0 4px 12px rgba(0,0,0,.55);
 }
-.seat.active .avatar { border-color: var(--gold); box-shadow: 0 0 14px var(--gold); }
+.seat.active .avatar {
+  border-color: var(--gold);
+  box-shadow: 0 0 18px rgba(245, 197, 66, 0.8), 0 4px 12px rgba(0,0,0,.55);
+}
 .seat.folded { opacity: 0.45; }
-.seat .name { font-size: 12px; font-weight: 700; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.seat .stack { font-size: 12px; color: var(--gold); font-weight: 700; }
+.seat .name {
+  font-size: 12px; font-weight: 700; max-width: 90px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+  background: rgba(0,0,0,.55); padding: 2px 8px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.seat .stack { font-size: 12px; color: var(--gold-light); font-weight: 800; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
 .seat .bet {
-  font-size: 12px; background: rgba(0,0,0,.55);
-  padding: 2px 8px; border-radius: 10px; color: #fde68a;
+  font-size: 12px; font-weight: 800;
+  background: linear-gradient(180deg, rgba(30,24,10,.9), rgba(15,12,5,.9));
+  border: 1px solid rgba(245, 197, 66, 0.5);
+  padding: 3px 10px; border-radius: 12px; color: var(--gold-light);
+  box-shadow: 0 0 10px rgba(245, 197, 66, 0.25);
 }
 .seat .hole { display: flex; gap: 4px; margin-top: 2px; }
 .seat .hole .playing-card { --card-w: 52px; }
@@ -187,12 +238,20 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 .community { position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%); display: flex; gap: 8px; }
 .pot {
   position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
-  background: rgba(0,0,0,.55); padding: 6px 18px; border-radius: 16px;
-  color: var(--gold); font-weight: 800; font-size: 18px;
+  background: linear-gradient(180deg, rgba(20,16,8,.85), rgba(10,8,4,.9));
+  border: 1px solid rgba(245, 197, 66, 0.5);
+  padding: 8px 20px; border-radius: 20px;
+  color: var(--gold-light); font-weight: 900; font-size: 18px;
+  box-shadow: 0 0 20px rgba(245, 197, 66, 0.25), inset 0 1px 0 rgba(255,255,255,.1);
+  text-shadow: 0 0 12px rgba(245, 197, 66, 0.5);
+  white-space: nowrap; z-index: 5;
 }
 .action-bar {
   display: flex; gap: 8px; justify-content: center; align-items: center;
-  padding: 12px; background: rgba(0,0,0,.5); flex-wrap: wrap;
+  padding: 12px;
+  background: linear-gradient(0deg, rgba(8,8,6,.9), rgba(8,8,6,.6));
+  border-top: 1px solid rgba(245, 197, 66, 0.22);
+  flex-wrap: wrap;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 .action-bar .to-call { color: #fde68a; font-weight: 700; }
@@ -211,9 +270,15 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 }
 .winner-banner {
   position: absolute; left: 50%; top: 55%; transform: translate(-50%,-50%);
-  background: rgba(0,0,0,.85); border: 2px solid var(--gold); border-radius: 16px;
-  padding: 20px 32px; text-align: center; z-index: 50;
+  background: linear-gradient(180deg, rgba(24,18,8,.96), rgba(10,8,4,.96));
+  border: 2px solid var(--gold); border-radius: 20px;
+  padding: 22px 34px; text-align: center; z-index: 50;
+  box-shadow: 0 0 40px rgba(245, 197, 66, 0.45), 0 20px 60px rgba(0,0,0,.7);
   animation: pop .4s cubic-bezier(.2,1.6,.4,1);
+}
+.winner-banner h2 {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 @keyframes pop { from { transform: translate(-50%,-50%) scale(.6); opacity: 0; } }
 .winner-banner h2 { margin: 0 0 8px; color: var(--gold); }
@@ -222,21 +287,32 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 .lobby-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
 .lobby-player {
   display: flex; align-items: center; gap: 10px;
-  background: #1f2937; padding: 10px 14px; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01)), #141b17;
+  border: 1px solid rgba(245, 197, 66, 0.14);
+  padding: 10px 14px; border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
 }
 .lobby-player .dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; }
 .ready-mark { font-size: 20px; }
 .code-big {
   font-size: 40px; font-weight: 900; letter-spacing: 8px; text-align: center;
-  color: var(--gold); margin: 12px 0;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(245, 197, 66, 0.35));
+  margin: 12px 0;
 }
 .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
 .settings-grid .full { grid-column: 1 / -1; }
 .topbar {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 16px; background: rgba(0,0,0,.5);
+  padding: 10px 16px;
+  background: linear-gradient(180deg, rgba(8,8,6,.85), rgba(8,8,6,.55));
+  border-bottom: 1px solid rgba(245, 197, 66, 0.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   padding-top: calc(10px + env(safe-area-inset-top));
 }
+.topbar b { color: var(--gold-light); letter-spacing: 0.5px; }
 .topbar .chips { color: var(--gold); font-weight: 800; }
 .master-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .master-table td, .master-table th { padding: 8px; border-bottom: 1px solid #1f2937; text-align: left; }
@@ -336,8 +412,13 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   font-size: 11px; background: #3b82f6; color: #fff; font-weight: 800;
   border-radius: 8px; padding: 2px 8px; margin-left: 6px;
 }
-.setting-summary { font-size: 13px; color: #d1d5db; background: #1f2937; border-radius: 12px; padding: 12px 14px; margin: 12px 0; line-height: 1.7; }
-.setting-summary b { color: var(--gold); }
+.setting-summary {
+  font-size: 13px; color: #d1d5db;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent), #121814;
+  border: 1px solid rgba(245, 197, 66, 0.14);
+  border-radius: 14px; padding: 12px 14px; margin: 12px 0; line-height: 1.7;
+}
+.setting-summary b { color: var(--gold-light); }
 
 /* ---------- 칩 애니메이션 ---------- */
 .chip-fly {
@@ -363,10 +444,12 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 }
 .pot-chip {
   position: absolute; left: 3px;
-  width: 28px; height: 13px; border-radius: 6px;
-  background: linear-gradient(180deg, #fbbf24, #d97706);
-  border: 2px dashed rgba(255,255,255,.75);
-  box-shadow: 0 2px 4px rgba(0,0,0,.45);
+  width: 28px; height: 13px; border-radius: 7px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 4px, transparent 4px 8px),
+    linear-gradient(180deg, #fde68a 0%, #f5c542 45%, #b45309 100%);
+  border: 1px solid rgba(120, 60, 10, 0.6);
+  box-shadow: 0 2px 5px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.6);
 }
 /* 카드 딜링 */
 .card-deal { display: inline-block; animation: cardDeal 0.45s cubic-bezier(.2,.9,.3,1.15) backwards; }
@@ -430,6 +513,7 @@ body.no-fx .chip-fly, body.no-fx .card-deal { animation: none !important; displa
 
   /* 테이블 */
   .poker-table { margin: 8px; border-width: 6px; min-height: 340px; }
+  .poker-table::before { inset: -10px; }
   .seat .avatar { width: 44px; height: 44px; }
   .seat .hole .playing-card { --card-w: 40px; }
   .seat .name { font-size: 11px; max-width: 72px; }
