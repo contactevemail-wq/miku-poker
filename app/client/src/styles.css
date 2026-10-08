@@ -339,6 +339,45 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 .setting-summary { font-size: 13px; color: #d1d5db; background: #1f2937; border-radius: 12px; padding: 12px 14px; margin: 12px 0; line-height: 1.7; }
 .setting-summary b { color: var(--gold); }
 
+/* ---------- 칩 애니메이션 ---------- */
+.chip-fly {
+  position: absolute;
+  width: 30px; height: 30px;
+  margin: -15px 0 0 -15px;
+  left: var(--fx); top: var(--fy);
+  z-index: 60; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
+  animation: chipFly 0.65s cubic-bezier(.3,.7,.4,1) forwards;
+}
+@keyframes chipFly {
+  0% { left: var(--fx); top: var(--fy); transform: scale(1) rotate(0deg); opacity: 1; }
+  70% { opacity: 1; }
+  100% { left: var(--tx); top: var(--ty); transform: scale(0.65) rotate(200deg); opacity: 0; }
+}
+/* 팟 칩 더미 */
+.pot-stack {
+  position: relative; display: inline-block;
+  width: 34px; height: 44px; vertical-align: middle; margin-right: 6px;
+}
+.pot-chip {
+  position: absolute; left: 3px;
+  width: 28px; height: 13px; border-radius: 6px;
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+  border: 2px dashed rgba(255,255,255,.75);
+  box-shadow: 0 2px 4px rgba(0,0,0,.45);
+}
+/* 카드 딜링 */
+.card-deal { display: inline-block; animation: cardDeal 0.45s cubic-bezier(.2,.9,.3,1.15) backwards; }
+@keyframes cardDeal {
+  0% { transform: translateY(-34px) scale(0.55); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-fly, .card-deal { animation: none; }
+}
+
 /* ---------- 테이블 추가 ---------- */
 .my-hand { display: flex; gap: 10px; justify-content: center; margin: 10px 0; }
 .my-hand .playing-card { --card-w: 96px; }

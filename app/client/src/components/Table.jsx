@@ -12,6 +12,17 @@ function seatPos(i, n) {
   return { left: 50 + 44 * Math.cos(rad), top: 50 + 44 * Math.sin(rad) };
 }
 
+/** 팟 크기에 따른 칩 더미 개수 */
+function potChipCount(pot) {
+  if (pot <= 0) return 0;
+  if (pot < 500) return 1;
+  if (pot < 2000) return 2;
+  if (pot < 5000) return 3;
+  if (pot < 15000) return 4;
+  if (pot < 50000) return 5;
+  return 6;
+}
+
 function ActionBar({ me, table, onAct }) {
   const [raiseTo, setRaiseTo] = useState(table.minRaiseTo);
   useEffect(() => setRaiseTo(table.minRaiseTo), [table.minRaiseTo, table.actionPlayerId]);
@@ -51,18 +62,71 @@ export default function Table({ user, room, onLeave }) {
   // 새 핸드마다 내 카드 쪼기 상태를 초기화하기 위한 키
   const [handKey, setHandKey] = useState(0);
   const prevStreet = useRef(null);
+  // 🪙 칩 이펙트 (날아가는 칩)
+  const [chipFx, setChipFx] = useState([]);
+  const fxSeq = useRef(0);
+  const prevBets = useRef({});
+  const tableRef = useRef(null);
+  const [dealing, setDealing] = useState(false);
+
+  const spawnFx = useCallback((fx) => {
+    const id = ++fxSeq.current;
+    const delay = fx.delay || 0;
+    if (delay > 0) {
+      setTimeout(() => spawnFx({ ...fx, delay: 0 }), delay);
+      return;
+    }
+    setChipFx((list) => [...list.slice(-11), { ...fx, id }]);
+    setTimeout(() => setChipFx((list) => list.filter((c) => c.id !== id)), 900);
+  }, []);
+
   useEffect(() => {
     if (!table) return;
     const s = table.street;
     if ((prevStreet.current === 'done' || prevStreet.current === null) && s === 'preflop') {
       setHandKey((k) => k + 1);
+      // 🃏 새 핸드 딜링 애니메이션
+      prevBets.current = {};
+      setDealing(true);
+      setTimeout(() => setDealing(false), 1300);
     }
     prevStreet.current = s;
   }, [table]);
 
   useEffect(() => {
-    const onTable = (t) => { setTable(t); setHandEnd(null); };
-    const onHandEnd = (h) => { setHandEnd(h); setBannerTimer(8); };
+    const onTable = (t) => {
+      // 🪙 베팅 감지 → 칩이 좌석에서 팟으로 날아감
+      const n = t.players.length;
+      const isNewHand = t.street === 'preflop' && tableRef.current?.street !== 'preflop';
+      if (isNewHand) prevBets.current = {};
+      t.players.forEach((p, i) => {
+        const prev = prevBets.current[p.id] || 0;
+        if (p.bet > prev) {
+          const pos = seatPos(i, n);
+          spawnFx({ fx: `${pos.left}%`, fy: `${pos.top}%`, tx: '50%', ty: '32%', kind: 'bet' });
+        }
+        prevBets.current[p.id] = p.bet;
+      });
+      tableRef.current = t;
+      setTable(t); setHandEnd(null);
+    };
+    const onHandEnd = (h) => {
+      // 🏆 승리 → 칩이 팟에서 승자에게 날아감
+      const t = tableRef.current;
+      if (t) {
+        const n = t.players.length;
+        h.winners.forEach((w) => {
+          const idx = t.players.findIndex((p) => String(p.id) === String(w.id) || p.name === w.name);
+          if (idx >= 0) {
+            const pos = seatPos(idx, n);
+            for (let k = 0; k < 3; k++) {
+              spawnFx({ fx: '50%', fy: '32%', tx: `${pos.left}%`, ty: `${pos.top}%`, kind: 'win', delay: k * 140 });
+            }
+          }
+        });
+      }
+      setHandEnd(h); setBannerTimer(8);
+    };
     const onSeries = (s) => setSeries(s);
     const onChat = (m) => setChats((c) => [...c.slice(-99), m]);
     socket.on('table_update', onTable);
@@ -75,7 +139,7 @@ export default function Table({ user, room, onLeave }) {
       socket.off('series_update', onSeries);
       socket.off('chat', onChat);
     };
-  }, []);
+  }, [spawnFx]);
 
   // 승자 배너 카운트다운
   useEffect(() => {
@@ -139,7 +203,26 @@ export default function Table({ user, room, onLeave }) {
         </div>
       )}
       <div className="poker-table">
-        <div className="pot">🍯 {pot.toLocaleString()}</div>
+        <div className="pot">
+          {potChipCount(pot) > 0 && (
+            <span className="pot-stack" aria-hidden>
+              {Array.from({ length: potChipCount(pot) }).map((_, i) => (
+                <span key={i} className="pot-chip" style={{ bottom: 2 + i * 7 }} />
+              ))}
+            </span>
+          )}
+          🍯 {pot.toLocaleString()}
+        </div>
+        {/* 🪙 날아가는 칩 이펙트 레이어 */}
+        {chipFx.map((c) => (
+          <div
+            key={c.id}
+            className={`chip-fly chip-${c.kind}`}
+            style={{ '--fx': c.fx, '--fy': c.fy, '--tx': c.tx, '--ty': c.ty }}
+          >
+            🪙
+          </div>
+        ))}
         <div className="community">
           {table.community.length === 0 && table.street !== 'done'
             ? [0, 1, 2, 3, 4].map((i) => <CardBack key={i} skin={skin} />)
@@ -167,9 +250,12 @@ export default function Table({ user, room, onLeave }) {
                 {holeCards.map((c, j) => (
                   // 내 카드는 하단 쪼기 영역에서 확인 → 좌석에서는 뒷면만 표시
                   // (마스터 버그: 쪼기 전에 좌석에 앞면으로 노출됨)
-                  isMe ? <CardBack key={j} skin={skin} />
-                  : c ? <Card key={j} card={c} faceUp skin={skin} />
-                     : <CardBack key={j} skin={skin} />
+                  <span key={j} className={dealing ? 'card-deal' : ''}
+                    style={dealing ? { animationDelay: `${(i * 60 + j * 90) % 600}ms` } : undefined}>
+                    {isMe ? <CardBack skin={skin} />
+                    : c ? <Card card={c} faceUp skin={skin} />
+                       : <CardBack skin={skin} />}
+                  </span>
                 ))}
               </div>
             </div>
@@ -193,7 +279,10 @@ export default function Table({ user, room, onLeave }) {
         <div style={{ background: 'rgba(0,0,0,.4)', padding: '8px' }}>
           <div className="my-hand">
             {me.hole.map((c, i) => (
-              <Card key={`${handKey}-${i}`} card={c} peekable skin={skin} />
+              <span key={`${handKey}-${i}`} className={dealing ? 'card-deal' : ''}
+                style={dealing ? { animationDelay: `${i * 110}ms` } : undefined}>
+                <Card card={c} peekable skin={skin} />
+              </span>
             ))}
           </div>
           <div className="spectate-note">👆 내 카드를 눌러 바로 확인 / 꾹 눌러 드래그하면 쪼아보기!</div>
