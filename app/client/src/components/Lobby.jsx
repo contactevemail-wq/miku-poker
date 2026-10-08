@@ -137,6 +137,14 @@ function CreateForm({ onDone, onCancel }) {
           </div>
           <div className="settings-grid">
             <NumField label="앤티 (0=없음)" value={s.ante || 0} onChange={(v) => set('ante', v)} min={0} step={10} />
+            <div className="field">
+              <label>
+                <input type="checkbox" checked={!!s.anteAuto}
+                  onChange={(e) => set('anteAuto', e.target.checked)} />
+                {' '}앤티 자동 (BB÷인원)
+              </label>
+              <div className="hint">체크하면 BB를 인원수로 나눠서 자동 징수</div>
+            </div>
           </div>
           <div className="field">
             <label>리바이 허용</label>

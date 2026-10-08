@@ -468,7 +468,7 @@ io.on('connection', (socket) => {
         buyin: 10000, sb: 50, bb: 100, blindIntervalMin: 15, blindMult: 2,
         rebuyAllowed: true, rebuyMax: 3, mode: 'single', seriesCount: 5,
         finalScoring: 'chips', coinTable: [3, 2, 1],
-        pineappleVariant: 'classic', blackjackBet: 100, studAnte: 10, ante: 0,
+        pineappleVariant: 'classic', blackjackBet: 100, studAnte: 10, ante: 0, anteAuto: false,
         ...(settings || {}),
       },
       players: [], table: null, state: 'lobby',
@@ -553,7 +553,7 @@ io.on('connection', (socket) => {
     const s = room.settings;
     // gameType → 테이블 클래스 (미등록 게임은 홀덤으로 폴백)
     const Tbl = GAME_TABLES[room.gameType] || GAME_TABLES.holdem;
-    const table = new Tbl({ sb: s.sb, bb: s.bb, pineappleVariant: s.pineappleVariant, blackjackBet: s.blackjackBet, studAnte: s.studAnte, ante: s.ante || 0 });
+    const table = new Tbl({ sb: s.sb, bb: s.bb, pineappleVariant: s.pineappleVariant, blackjackBet: s.blackjackBet, studAnte: s.studAnte, ante: s.ante || 0, anteAuto: !!s.anteAuto });
     room.buyinPaid = new Map();
     for (const p of room.players) {
       if (p.isBot) {

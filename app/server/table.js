@@ -39,6 +39,7 @@ export class Table {
     this.sb = opts.sb ?? 50;
     this.bb = opts.bb ?? 100;
     this.ante = opts.ante ?? 0;
+    this.anteAuto = !!opts.anteAuto;
     this.log = [];
     this.winners = [];
   }
@@ -86,8 +87,14 @@ export class Table {
     const bbP = ps[(ps.indexOf(dealer) + 2) % n] ?? sbP;
 
     // 앤티: 전원 강제 베팅 (팟 직행)
-    if (this.ante > 0) {
-      for (const p of ps) this.postAnte(p, this.ante);
+    // anteAuto 모드: BB ÷ 인원수로 자동 계산 (마스터 아이디어!)
+    // 예: BB 100, 6명 → 각자 16씩, 총 96 (≒1 BB)
+    let anteAmt = this.ante;
+    if (this.anteAuto && this.bb > 0) {
+      anteAmt = Math.floor(this.bb / ps.length);
+    }
+    if (anteAmt > 0) {
+      for (const p of ps) this.postAnte(p, anteAmt);
     }
 
     this.postBlind(n === 2 ? dealer : sbP, this.sb);
