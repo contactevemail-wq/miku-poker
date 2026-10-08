@@ -239,6 +239,17 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
 }
 .seat .hole { display: flex; gap: 4px; margin-top: 2px; }
 .seat .hole .playing-card { --card-w: 52px; }
+/* 📐 7명 이상 혼잡 시 좌석 축소 */
+.poker-table.crowded .seat { gap: 2px; }
+.poker-table.crowded .seat .avatar { width: 40px; height: 40px; font-size: 18px; border-width: 2px; }
+.poker-table.crowded .seat .hole .playing-card { --card-w: 38px; }
+.poker-table.crowded .seat .name { font-size: 10px; max-width: 64px; padding: 1px 6px; }
+.poker-table.crowded .seat .stack { font-size: 10px; }
+.poker-table.crowded .seat .bet {
+  font-size: 10px; padding: 2px 7px;
+  position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+  white-space: nowrap;
+}
 .seat .dealer-btn {
   position: absolute; top: -10px; right: -10px;
   width: 22px; height: 22px; border-radius: 50%;
@@ -339,6 +350,20 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   background: var(--gold-gradient);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
+/* 🃏 쇼다운 카드 공개 */
+.showdown-list {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(245, 197, 66, 0.25);
+}
+.showdown-title { font-weight: 800; font-size: 14px; color: var(--gold-light); margin-bottom: 8px; }
+.showdown-row {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0; font-size: 13px;
+}
+.showdown-name { font-weight: 700; min-width: 60px; text-align: right; }
+.showdown-cards { display: flex; gap: 4px; }
+.showdown-cards .playing-card { width: 36px; }
+.showdown-hand { color: var(--gold-light); font-weight: 700; }
 @keyframes pop { from { transform: translate(-50%,-50%) scale(.6); opacity: 0; } }
 .winner-banner h2 { margin: 0 0 8px; color: var(--gold); }
 
