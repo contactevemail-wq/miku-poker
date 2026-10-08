@@ -324,11 +324,10 @@ export default function Table({ user, room, onLeave }) {
               {p.bet > 0 && <div className="bet">+{p.bet.toLocaleString()}</div>}
               <div className="hole">
                 {holeCards.map((c, j) => (
-                  // 내 카드는 하단 쪼기 영역에서 확인 → 좌석에서는 뒷면만 표시
-                  // (마스터 버그: 쪼기 전에 좌석에 앞면으로 노출됨)
+                  // 내 카드: 쪼기 전에는 뒷면, 쪼은 후에는 좌석 앞에서 앞면 표시!
                   <span key={j} className={dealing && fxOn ? 'card-deal' : ''}
                     style={(dealing && fxOn) ? { animationDelay: `${(i * 60 + j * 90) % 600}ms` } : undefined}>
-                    {isMe ? <CardBack skin={skin} />
+                    {isMe ? (peeked && c ? <Card card={c} faceUp skin={skin} /> : <CardBack skin={skin} />)
                     : c ? <Card card={c} faceUp skin={skin} />
                        : <CardBack skin={skin} />}
                   </span>
@@ -366,7 +365,7 @@ export default function Table({ user, room, onLeave }) {
         )}
       </div>
 
-      {/* 내 핸드 쪼기 영역 — 쪼기 전: 인터랙티브 / 쪼기 후: 앞면 컴팩트 표시 */}
+      {/* 내 핸드 쪼기 영역 — 쪼을 때만 표시, 쪼은 후에는 좌석 앞 카드에 앞면 표시! */}
       {me && me.hole && me.hole[0] && !peeked && (
         <div style={{ background: 'rgba(0,0,0,.4)', padding: '8px' }}>
           <div className="my-hand">
@@ -381,14 +380,9 @@ export default function Table({ user, room, onLeave }) {
         </div>
       )}
       {me && me.hole && me.hole[0] && peeked && (
-        <div className="my-hand-done">
-          <div className="my-hand-compact">
-            {me.hole.map((c, i) => (
-              <Card key={`done-${handKey}-${i}`} card={c} faceUp small skin={skin} />
-            ))}
-          </div>
-          <button className="repeek-btn" onClick={() => setPeeked(false)} title="다시 쪼기">
-            🔍
+        <div style={{ textAlign: 'center', padding: '4px' }}>
+          <button onClick={() => setPeeked(false)} style={{ fontSize: 12, opacity: 0.7 }}>
+            🔍 다시 쪼기
           </button>
         </div>
       )}
