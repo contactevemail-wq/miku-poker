@@ -71,7 +71,12 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   padding: 20px;
   padding-top: calc(20px + env(safe-area-inset-top));
   padding-bottom: calc(20px + env(safe-area-inset-bottom));
-  background: radial-gradient(ellipse at center, #0d5c34 0%, #06130c 75%);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(245, 197, 66, 0.07) 0, transparent 12%),
+    radial-gradient(circle at 85% 15%, rgba(245, 197, 66, 0.05) 0, transparent 10%),
+    radial-gradient(circle at 70% 80%, rgba(245, 197, 66, 0.06) 0, transparent 14%),
+    radial-gradient(circle at 25% 75%, rgba(245, 197, 66, 0.04) 0, transparent 10%),
+    radial-gradient(ellipse at center, #0e3d24 0%, #06130c 75%);
 }
 .panel {
   background: var(--panel);
@@ -167,13 +172,18 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   border: 10px solid #201510;
   border-radius: 50% / 50%;
   background:
-    radial-gradient(ellipse at center, #128a4c 0%, var(--felt) 55%, var(--felt-dark) 85%, var(--felt-deep) 100%);
+    radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.06) 0%, transparent 45%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,.018) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,.03) 0 2px, transparent 2px 5px),
+    radial-gradient(ellipse at center, #15a057 0%, var(--felt) 50%, var(--felt-dark) 82%, var(--felt-deep) 100%);
   box-shadow:
-    inset 0 0 0 2px rgba(245, 197, 66, 0.75),
-    inset 0 0 90px rgba(0,0,0,.65),
-    inset 0 2px 12px rgba(255,255,255,.05),
-    0 12px 44px rgba(0,0,0,.6),
-    0 0 28px rgba(245, 197, 66, 0.12);
+    inset 0 0 0 2px rgba(245, 197, 66, 0.85),
+    inset 0 0 0 5px rgba(120, 70, 20, 0.55),
+    inset 0 0 0 6px rgba(245, 197, 66, 0.35),
+    inset 0 0 110px rgba(0,0,0,.7),
+    inset 0 2px 14px rgba(255,255,255,.06),
+    0 14px 50px rgba(0,0,0,.65),
+    0 0 34px rgba(245, 197, 66, 0.14);
   min-height: 420px;
 }
 /* 바깥 골드 트림 */
@@ -236,6 +246,14 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   display: flex; align-items: center; justify-content: center;
 }
 .community { position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%); display: flex; gap: 8px; }
+/* 커뮤니티 카드 뒤 장식 골드 링 */
+.community::before {
+  content: '🃏';
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -58%);
+  font-size: 120px; opacity: 0.05;
+  pointer-events: none;
+}
 .pot {
   position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
   background: linear-gradient(180deg, rgba(20,16,8,.85), rgba(10,8,4,.9));
@@ -444,12 +462,18 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
 }
 .pot-chip {
   position: absolute; left: 3px;
-  width: 28px; height: 13px; border-radius: 7px;
+  width: 28px; height: 14px; border-radius: 7px;
   background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 4px, transparent 4px 8px),
-    linear-gradient(180deg, #fde68a 0%, #f5c542 45%, #b45309 100%);
-  border: 1px solid rgba(120, 60, 10, 0.6);
-  box-shadow: 0 2px 5px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.6);
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,.95) 0 3px,
+      rgba(180,120,40,.25) 3px 5px,
+      transparent 5px 10px),
+    linear-gradient(180deg, #fff8dc 0%, #fde68a 25%, #f5c542 50%, #d97706 78%, #92400e 100%);
+  border: 1px solid rgba(90, 45, 8, 0.7);
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.55),
+    inset 0 2px 2px rgba(255,255,255,.7),
+    inset 0 -2px 3px rgba(90, 45, 8, 0.5);
 }
 /* 카드 딜링 */
 .card-deal { display: inline-block; animation: cardDeal 0.45s cubic-bezier(.2,.9,.3,1.15) backwards; }
