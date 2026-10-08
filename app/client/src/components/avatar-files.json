@@ -1,0 +1,67 @@
+{
+ "acc_headset": [
+  "avatar-assets/accessory/acc_headset.png"
+ ],
+ "acc_starpin": [
+  "avatar-assets/accessory/acc_starpin.png"
+ ],
+ "acc_glasses": [
+  "avatar-assets/accessory/acc_glasses.png"
+ ],
+ "bottom_skirt": [
+  "avatar-assets/bottom/bottom_skirt.png"
+ ],
+ "bottom_skirt_pink": [
+  "avatar-assets/bottom/bottom_skirt_pink.png"
+ ],
+ "bottom_jeans": [
+  "avatar-assets/bottom/bottom_jeans.png"
+ ],
+ "face_smile": [
+  "avatar-assets/face/face_smile.png"
+ ],
+ "face_wink": [
+  "avatar-assets/face/face_wink.png"
+ ],
+ "face_hearteyes": [
+  "avatar-assets/face/face_hearteyes.png"
+ ],
+ "hair_twintail": [
+  "avatar-assets/hair/hair_back_twintail.png",
+  "avatar-assets/hair/hair_front_twintail.png"
+ ],
+ "hair_sakura": [
+  "avatar-assets/hair/hair_back_sakura.png",
+  "avatar-assets/hair/hair_front_sakura.png"
+ ],
+ "hair_yuki": [
+  "avatar-assets/hair/hair_back_yuki.png",
+  "avatar-assets/hair/hair_front_yuki.png"
+ ],
+ "hair_gold": [
+  "avatar-assets/hair/hair_back_gold.png",
+  "avatar-assets/hair/hair_front_gold.png"
+ ],
+ "hat_none": [
+  "avatar-assets/hat/hat_none.png"
+ ],
+ "hat_ribbon": [
+  "avatar-assets/hat/hat_ribbon.png"
+ ],
+ "hat_headphones": [
+  "avatar-assets/hat/hat_headphones.png"
+ ],
+ "shoes_jangoon": [],
+ "shoes_gomushin": [],
+ "shoes_boots": [],
+ "shoes_highboots": [],
+ "top_sleeveless": [
+  "avatar-assets/top/top_sleeveless.png"
+ ],
+ "top_sleeveless_pink": [
+  "avatar-assets/top/top_sleeveless_pink.png"
+ ],
+ "top_hoodie": [
+  "avatar-assets/top/top_hoodie.png"
+ ]
+}

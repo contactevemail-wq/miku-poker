@@ -1,0 +1,272 @@
+{
+  "version": "2.0.0",
+  "license": "13-3 자작 (PIL 드로잉). 라이선스 클린.",
+  "avatar_spec": {
+    "canvas": [
+      512,
+      768
+    ],
+    "format": "PNG (투명 배경)",
+    "layer_order": [
+      "hair_back",
+      "base",
+      "bottom",
+      "top",
+      "face",
+      "hair_front",
+      "hat",
+      "accessory"
+    ],
+    "note": "hair 카테고리는 앞/뒤 2개 PNG. layer_order 순서대로 alpha composite."
+  },
+  "categories": {
+    "hair": "헤어",
+    "face": "얼굴(표정)",
+    "top": "상의",
+    "bottom": "하의",
+    "hat": "모자",
+    "accessory": "악세사리",
+    "base": "베이스 바디"
+  },
+  "rarity": {
+    "기본": {
+      "price": 0,
+      "desc": "가입 시 기본 지급"
+    },
+    "일반": {
+      "price_range": [
+        1500,
+        3000
+      ],
+      "desc": "가볍게 모을 수 있는 파츠"
+    },
+    "레어": {
+      "price_range": [
+        4000,
+        6000
+      ],
+      "desc": "제법 모아야 살 수 있는 파츠"
+    },
+    "전설": {
+      "price_range": [
+        12000,
+        12000
+      ],
+      "desc": "끝판왕 파츠"
+    }
+  },
+  "parts": [
+    {
+      "id": "base",
+      "category": "base",
+      "name": "베이스 바디",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "base/base.png"
+      ]
+    },
+    {
+      "id": "hair_twintail",
+      "category": "hair",
+      "name": "기본 트윈테일",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "hair/hair_back_twintail.png",
+        "hair/hair_front_twintail.png"
+      ]
+    },
+    {
+      "id": "hair_sakura",
+      "category": "hair",
+      "name": "사쿠라 트윈테일",
+      "rarity": "레어",
+      "price": 5000,
+      "files": [
+        "hair/hair_back_sakura.png",
+        "hair/hair_front_sakura.png"
+      ]
+    },
+    {
+      "id": "hair_yuki",
+      "category": "hair",
+      "name": "유키 트윈테일",
+      "rarity": "레어",
+      "price": 6000,
+      "files": [
+        "hair/hair_back_yuki.png",
+        "hair/hair_front_yuki.png"
+      ]
+    },
+    {
+      "id": "hair_gold",
+      "category": "hair",
+      "name": "골드 트윈테일",
+      "rarity": "전설",
+      "price": 12000,
+      "files": [
+        "hair/hair_back_gold.png",
+        "hair/hair_front_gold.png"
+      ]
+    },
+    {
+      "id": "face_smile",
+      "category": "face",
+      "name": "미소",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "face/face_smile.png"
+      ]
+    },
+    {
+      "id": "face_wink",
+      "category": "face",
+      "name": "윙크",
+      "rarity": "일반",
+      "price": 3000,
+      "files": [
+        "face/face_wink.png"
+      ]
+    },
+    {
+      "id": "face_hearteyes",
+      "category": "face",
+      "name": "하트눈",
+      "rarity": "레어",
+      "price": 5000,
+      "files": [
+        "face/face_hearteyes.png"
+      ]
+    },
+    {
+      "id": "top_sleeveless",
+      "category": "top",
+      "name": "기본 민소매",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "top/top_sleeveless.png"
+      ]
+    },
+    {
+      "id": "top_sleeveless_pink",
+      "category": "top",
+      "name": "핑크 민소매",
+      "rarity": "일반",
+      "price": 2000,
+      "files": [
+        "top/top_sleeveless_pink.png"
+      ]
+    },
+    {
+      "id": "top_hoodie",
+      "category": "top",
+      "name": "청록 후드",
+      "rarity": "레어",
+      "price": 5000,
+      "files": [
+        "top/top_hoodie.png"
+      ]
+    },
+    {
+      "id": "bottom_skirt",
+      "category": "bottom",
+      "name": "기본 치마",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "bottom/bottom_skirt.png"
+      ]
+    },
+    {
+      "id": "bottom_skirt_pink",
+      "category": "bottom",
+      "name": "핑크 치마",
+      "rarity": "일반",
+      "price": 2000,
+      "files": [
+        "bottom/bottom_skirt_pink.png"
+      ]
+    },
+    {
+      "id": "bottom_jeans",
+      "category": "bottom",
+      "name": "청바지",
+      "rarity": "레어",
+      "price": 4000,
+      "files": [
+        "bottom/bottom_jeans.png"
+      ]
+    },
+    {
+      "id": "hat_none",
+      "category": "hat",
+      "name": "없음",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "hat/hat_none.png"
+      ]
+    },
+    {
+      "id": "hat_headphones",
+      "category": "hat",
+      "name": "DJ 헤드폰",
+      "rarity": "레어",
+      "price": 5000,
+      "files": [
+        "hat/hat_headphones.png"
+      ]
+    },
+    {
+      "id": "hat_ribbon",
+      "category": "hat",
+      "name": "빨간 리본",
+      "rarity": "일반",
+      "price": 2500,
+      "files": [
+        "hat/hat_ribbon.png"
+      ]
+    },
+    {
+      "id": "acc_headset",
+      "category": "accessory",
+      "name": "스퀘어 헤어 액세서리",
+      "rarity": "기본",
+      "price": 0,
+      "files": [
+        "accessory/acc_headset.png"
+      ]
+    },
+    {
+      "id": "acc_glasses",
+      "category": "accessory",
+      "name": "동글이 안경",
+      "rarity": "일반",
+      "price": 2000,
+      "files": [
+        "accessory/acc_glasses.png"
+      ]
+    },
+    {
+      "id": "acc_starpin",
+      "category": "accessory",
+      "name": "별 헤어핀",
+      "rarity": "일반",
+      "price": 1500,
+      "files": [
+        "accessory/acc_starpin.png"
+      ]
+    }
+  ],
+  "default_loadout": {
+    "hair": "hair_twintail",
+    "face": "face_smile",
+    "top": "top_sleeveless",
+    "bottom": "bottom_skirt",
+    "hat": "hat_none",
+    "accessory": "acc_headset"
+  }
+}

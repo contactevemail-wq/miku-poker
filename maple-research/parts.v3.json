@@ -1,0 +1,277 @@
+{
+  "version": "3.0.0-maple",
+  "license": "넥슨 메이플스토리 에셋 (maplestory.io 렌더 API 경유). 프라이빗·친구 전용 사용 — 마스터 결정.",
+  "render": {
+    "api": "https://maplestory.io/api/character/{payload}/stand1/0",
+    "region": "GMS",
+    "version": "214",
+    "skin": [
+      2000,
+      12000
+    ],
+    "action": "stand1",
+    "frame": 0,
+    "note": "payload = URL인코딩된 [{itemId,region,version},...] (양끝 [] 제거). 상세: RESEARCH.md"
+  },
+  "categories": {
+    "hair": "헤어",
+    "face": "얼굴(표정)",
+    "top": "상의",
+    "bottom": "하의",
+    "hat": "모자",
+    "shoes": "신발"
+  },
+  "rarity": {
+    "기본": {
+      "price": 0,
+      "desc": "가입 시 기본 지급"
+    },
+    "일반": {
+      "price_range": [
+        1500,
+        3000
+      ],
+      "desc": "가볍게 모을 수 있는 파츠"
+    },
+    "레어": {
+      "price_range": [
+        4000,
+        6000
+      ],
+      "desc": "제법 모아야 살 수 있는 파츠"
+    },
+    "전설": {
+      "price_range": [
+        12000,
+        12000
+      ],
+      "desc": "끝판왕 파츠"
+    }
+  },
+  "default_loadout": {
+    "bottom": "bottom_jeans_ice",
+    "face": "face_smile",
+    "hair": "hair_carla_black",
+    "hat": "hat_none",
+    "shoes": "shoes_jangoon",
+    "top": "top_hoodie_orange"
+  },
+  "parts": [
+    {
+      "id": "hair_carla_black",
+      "category": "hair",
+      "name": "블랙 칼라 헤어",
+      "rarity": "기본",
+      "price": 0,
+      "maple_item_id": 31310
+    },
+    {
+      "id": "hair_carla_red",
+      "category": "hair",
+      "name": "레드 칼라 헤어",
+      "rarity": "일반",
+      "price": 2000,
+      "maple_item_id": 31311
+    },
+    {
+      "id": "hair_carla_blonde",
+      "category": "hair",
+      "name": "블론드 칼라 헤어",
+      "rarity": "일반",
+      "price": 2000,
+      "maple_item_id": 31313
+    },
+    {
+      "id": "hair_carla_blue",
+      "category": "hair",
+      "name": "블루 칼라 헤어",
+      "rarity": "레어",
+      "price": 5000,
+      "maple_item_id": 31315
+    },
+    {
+      "id": "hair_carla_purple",
+      "category": "hair",
+      "name": "퍼플 칼라 헤어",
+      "rarity": "레어",
+      "price": 5000,
+      "maple_item_id": 31316
+    },
+    {
+      "id": "hair_roxy_red",
+      "category": "hair",
+      "name": "레드 록시 헤어",
+      "rarity": "전설",
+      "price": 12000,
+      "maple_item_id": 31321
+    },
+    {
+      "id": "face_smile",
+      "category": "face",
+      "name": "함박웃음",
+      "rarity": "기본",
+      "price": 0,
+      "maple_item_id": 20021
+    },
+    {
+      "id": "face_pout",
+      "category": "face",
+      "name": "아기 입술",
+      "rarity": "일반",
+      "price": 3000,
+      "maple_item_id": 20006
+    },
+    {
+      "id": "face_curious",
+      "category": "face",
+      "name": "호기심 강아지",
+      "rarity": "일반",
+      "price": 3000,
+      "maple_item_id": 20012
+    },
+    {
+      "id": "face_demure",
+      "category": "face",
+      "name": "수줍은 자태",
+      "rarity": "레어",
+      "price": 5000,
+      "maple_item_id": 20017
+    },
+    {
+      "id": "face_dramatic",
+      "category": "face",
+      "name": "드라마틱",
+      "rarity": "레어",
+      "price": 5000,
+      "maple_item_id": 20003
+    },
+    {
+      "id": "top_hoodie_orange",
+      "category": "top",
+      "name": "오렌지 후드 조끼",
+      "rarity": "기본",
+      "price": 0,
+      "maple_item_id": 1042000
+    },
+    {
+      "id": "top_hoodie_black",
+      "category": "top",
+      "name": "블랙 후드 조끼",
+      "rarity": "일반",
+      "price": 2000,
+      "maple_item_id": 1042001
+    },
+    {
+      "id": "top_hoodie_pink",
+      "category": "top",
+      "name": "핑크 후드 조끼",
+      "rarity": "레어",
+      "price": 5000,
+      "maple_item_id": 1042004
+    },
+    {
+      "id": "top_baseball",
+      "category": "top",
+      "name": "와일드캣츠 야구셔츠",
+      "rarity": "일반",
+      "price": 2500,
+      "maple_item_id": 1042008
+    },
+    {
+      "id": "bottom_jeans_ice",
+      "category": "bottom",
+      "name": "아이스 진",
+      "rarity": "기본",
+      "price": 0,
+      "maple_item_id": 1062000
+    },
+    {
+      "id": "bottom_jeans_sand",
+      "category": "bottom",
+      "name": "샌드블라스트 진",
+      "rarity": "일반",
+      "price": 2000,
+      "maple_item_id": 1062001
+    },
+    {
+      "id": "bottom_hiphop_red",
+      "category": "bottom",
+      "name": "레드 힙합 팬츠",
+      "rarity": "레어",
+      "price": 4000,
+      "maple_item_id": 1062003
+    },
+    {
+      "id": "bottom_archer",
+      "category": "bottom",
+      "name": "아처 팬츠",
+      "rarity": "일반",
+      "price": 2500,
+      "maple_item_id": 1062004
+    },
+    {
+      "id": "shoes_jangoon",
+      "category": "shoes",
+      "name": "브라운 장군 신발",
+      "rarity": "기본",
+      "price": 0,
+      "maple_item_id": 1072000
+    },
+    {
+      "id": "shoes_gomushin",
+      "category": "shoes",
+      "name": "화이트 고무신",
+      "rarity": "일반",
+      "price": 1500,
+      "maple_item_id": 1072004
+    },
+    {
+      "id": "shoes_boots",
+      "category": "shoes",
+      "name": "브라운 베이직 부츠",
+      "rarity": "일반",
+      "price": 2000,
+      "maple_item_id": 1072006
+    },
+    {
+      "id": "shoes_highboots",
+      "category": "shoes",
+      "name": "브라운 하이 부츠",
+      "rarity": "레어",
+      "price": 4000,
+      "maple_item_id": 1072007
+    },
+    {
+      "id": "hat_none",
+      "category": "hat",
+      "name": "없음",
+      "rarity": "기본",
+      "price": 0,
+      "maple_item_id": null
+    },
+    {
+      "id": "hat_kitty",
+      "category": "hat",
+      "name": "키티 캠핑 모자",
+      "rarity": "레어",
+      "price": 5000,
+      "maple_item_id": 1003006
+    },
+    {
+      "id": "hat_winter",
+      "category": "hat",
+      "name": "브라운 겨울 모자",
+      "rarity": "일반",
+      "price": 2500,
+      "maple_item_id": 1002010
+    },
+    {
+      "id": "hat_bandana",
+      "category": "hat",
+      "name": "스플래시 반다나",
+      "rarity": "일반",
+      "price": 2000,
+      "maple_item_id": 1003002
+    }
+  ]
+}

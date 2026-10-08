@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>🍁 메이플 아바타 데모 (13-3)</title>
+<style>
+  body { font-family: sans-serif; background: #1a1a2e; color: #eee; text-align: center; padding: 24px; }
+  .row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .card { background: #16213e; border-radius: 12px; padding: 16px; }
+  .card img { image-rendering: pixelated; background: #0f3460; border-radius: 8px; }
+  code { font-size: 11px; color: #7fdbca; word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>🍁 메이플 아바타 렌더 데모</h1>
+<p>parts.v3.json + mapleAvatar.js → maplestory.io 렌더 API</p>
+<div class="row" id="gallery"></div>
+<script type="module">
+import { mapleAvatarUrl, loadoutUrl } from "./mapleAvatar.js";
+const parts = await (await fetch("./parts.v3.json")).json();
+const byId = Object.fromEntries(parts.parts.map(p => [p.id, p]));
+
+const demos = [
+  ["기본 로드아웃", parts.default_loadout],
+  ["레어 풀셋", { hair: "hair_carla_blue", face: "face_demure", top: "top_hoodie_pink",
+                  bottom: "bottom_hiphop_red", shoes: "shoes_highboots", hat: "hat_kitty" }],
+  ["전설 헤어", { ...parts.default_loadout, hair: "hair_roxy_red" }],
+];
+const g = document.getElementById("gallery");
+for (const [label, loadout] of demos) {
+  const url = loadoutUrl(byId, loadout, 4);
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = `<h3>${label}</h3><img src="${url}" alt="${label}"><br><code>${url.slice(0, 90)}…</code>`;
+  g.appendChild(div);
+}
+</script>
+</body>
+</html>
