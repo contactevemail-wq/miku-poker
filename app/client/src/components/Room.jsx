@@ -48,6 +48,10 @@ function settingsSummary(s) {
       ? `시리즈 ${s.seriesCount}판 · ${s.finalScoring === 'coins' ? '승리코인제' : '칩 총합제'}`
       : '단판',
   ];
+  if (s.botCount > 0) {
+    const diffName = { easy: '쉬움', normal: '보통', hard: '어려움' }[s.botDifficulty] || '보통';
+    parts.push(`🤖 봇 ${s.botCount}명(${diffName})`);
+  }
   return parts.join(' · ');
 }
 
@@ -178,6 +182,7 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
               </div>
               <div style={{ fontWeight: 700 }}>
                 {p.name}
+                {p.isBot && <span className="bot-badge">🤖 봇</span>}
                 {p.userId === room.hostId && <span className="host-badge">HOST</span>}
               </div>
             </div>

@@ -320,6 +320,10 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   font-size: 11px; background: var(--gold); color: #1a1a1a; font-weight: 800;
   border-radius: 8px; padding: 2px 8px; margin-left: 6px;
 }
+.bot-badge {
+  font-size: 11px; background: #3b82f6; color: #fff; font-weight: 800;
+  border-radius: 8px; padding: 2px 8px; margin-left: 6px;
+}
 .setting-summary { font-size: 13px; color: #d1d5db; background: #1f2937; border-radius: 12px; padding: 12px 14px; margin: 12px 0; line-height: 1.7; }
 .setting-summary b { color: var(--gold); }
 

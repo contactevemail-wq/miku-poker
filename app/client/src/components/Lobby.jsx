@@ -42,6 +42,8 @@ function CreateForm({ onDone, onCancel }) {
   const [name, setName] = useState('');
   const [gameType, setGameType] = useState('holdem');
   const [password, setPassword] = useState('');
+  const [botCount, setBotCount] = useState(0);
+  const [botDifficulty, setBotDifficulty] = useState('normal');
   const [s, setS] = useState(DEFAULT_SETTINGS);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -54,6 +56,8 @@ function CreateForm({ onDone, onCancel }) {
     try {
       const settings = { ...s };
       if (password.trim()) settings.password = password.trim().slice(0, 20);
+      settings.botCount = Math.max(0, Math.min(8, botCount | 0));
+      settings.botDifficulty = ['easy', 'normal', 'hard'].includes(botDifficulty) ? botDifficulty : 'normal';
       const r = await emitAsync('create_room', { name: name.trim(), gameType, settings });
       if (r.error) setError(r.error);
       else onDone(r.code);
@@ -92,6 +96,26 @@ function CreateForm({ onDone, onCancel }) {
               placeholder="비워두면 누구나 입장 가능" maxLength={20} />
             <div className="hint">초대 코드와 함께 공유하세요</div>
           </div>
+          <div className="field">
+            <label>🤖 봇 추가 (0~8명)</label>
+            <div className="row">
+              <input type="range" min={0} max={8} step={1} value={botCount}
+                onChange={(e) => setBotCount(parseInt(e.target.value, 10) || 0)}
+                style={{ flex: 1 }} />
+              <span style={{ minWidth: 44, textAlign: 'center', fontWeight: 800 }}>{botCount}명</span>
+            </div>
+            <div className="hint">혼자서도 플레이할 수 있어요!</div>
+          </div>
+          {botCount > 0 && (
+            <div className="field">
+              <label>봇 난이도</label>
+              <div className="segment">
+                <button className={botDifficulty === 'easy' ? 'on' : ''} onClick={() => setBotDifficulty('easy')}>😊 쉬움</button>
+                <button className={botDifficulty === 'normal' ? 'on' : ''} onClick={() => setBotDifficulty('normal')}>😐 보통</button>
+                <button className={botDifficulty === 'hard' ? 'on' : ''} onClick={() => setBotDifficulty('hard')}>😈 어려움</button>
+              </div>
+            </div>
+          )}
           <div className="field">
             <label>설정 프리셋</label>
             <div className="preset-row">

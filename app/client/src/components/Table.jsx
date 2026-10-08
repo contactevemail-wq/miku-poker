@@ -159,7 +159,7 @@ export default function Table({ user, room, onLeave }) {
                 <Avatar loadout={p.equipped} color={p.color || '#22d3ee'} size={52} title={p.title ? `${p.name} ${p.title}` : p.name} />
               )}
               <div className="name" style={{ color: isMe ? user.color : (p.color || '#fff') }}>
-                {p.name}{isMe ? ' (나)' : ''}{p.allin ? ' 🔥올인' : ''}
+                {p.name}{isMe ? ' (나)' : ''}{p.isBot && !p.name.startsWith('🤖') ? ' 🤖' : ''}{p.allin ? ' 🔥올인' : ''}
               </div>
               <div className="stack">🪙 {p.stack.toLocaleString()}</div>
               {p.bet > 0 && <div className="bet">+{p.bet.toLocaleString()}</div>}
