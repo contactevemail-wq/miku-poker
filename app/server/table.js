@@ -172,9 +172,10 @@ export class Table {
     const ps = this.players;
     for (let i = 0; i < ps.length; i++) {
       const p = ps[this.actionIdx % ps.length];
-      if (!p.folded && !p.allin && !p.sittingOut && p.stack >= 0) {
-        // 스택 0이어도 콜 완료 상태면 스킵해야 → allin 체크됨
-        if (p.stack === 0 && p.bet === this.currentBet) { this.actionIdx++; continue; }
+      // 스택 0 = 탈락 → 턴 스킵 (마스터 버그: "돈 없어서 죽은 사람 차례는 왜 돌아가")
+      if (p.stack === 0) { this.actionIdx++; continue; }
+      if (!p.folded && !p.allin && !p.sittingOut) {
+        if (p.bet === this.currentBet && p.stack === 0) { this.actionIdx++; continue; }
         return;
       }
       this.actionIdx++;
@@ -182,7 +183,9 @@ export class Table {
   }
 
   canAct(p) {
-    return !p.folded && !p.allin && !p.sittingOut && !(p.stack === 0 && p.bet === this.currentBet);
+    // 스택 0이면 액션 불가 (탈락)
+    if (p.stack === 0) return false;
+    return !p.folded && !p.allin && !p.sittingOut;
   }
 
   bettingComplete() {
