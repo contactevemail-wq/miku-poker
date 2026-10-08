@@ -86,6 +86,8 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
   const [starting, setStarting] = useState(false);
   const [startErr, setStartErr] = useState('');
   const [stuck, setStuck] = useState(false);
+  const [botDiff, setBotDiff] = useState('normal');
+  const [botBusy, setBotBusy] = useState(false);
   // 방 정보가 8초 넘게 안 오면 돌아가기 버튼 표시
   useEffect(() => {
     if (room) return;
@@ -147,6 +149,30 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
     }
   };
 
+  const addBot = async () => {
+    setStartErr('');
+    setBotBusy(true);
+    try {
+      const r = await emitAsync('add_bot', { difficulty: botDiff });
+      if (r.error) setStartErr(r.error);
+    } catch {
+      setStartErr('서버에 연결할 수 없어요');
+    }
+    setBotBusy(false);
+  };
+
+  const removeBot = async (botId) => {
+    setStartErr('');
+    setBotBusy(true);
+    try {
+      const r = await emitAsync('remove_bot', { userId: botId });
+      if (r.error) setStartErr(r.error);
+    } catch {
+      setStartErr('서버에 연결할 수 없어요');
+    }
+    setBotBusy(false);
+  };
+
   if (result) return <ResultsScreen result={result} onClose={() => setResult(null)} />;
 
   if (!room) {
@@ -202,9 +228,37 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
               <div className="ready-mark" title={p.ready ? '준비 완료' : '준비 중'}>
                 {p.ready ? '✅' : '⏳'}
               </div>
+              {isHost && p.isBot && (
+                <button
+                  className="bot-remove"
+                  onClick={() => removeBot(p.userId)}
+                  disabled={botBusy}
+                  title="봇 제거"
+                >
+                  ❌
+                </button>
+              )}
             </div>
           ))}
         </div>
+        {isHost && (
+          <div className="bot-controls">
+            <span className="bot-controls-label">🤖 봇 추가</span>
+            <select value={botDiff} onChange={(e) => setBotDiff(e.target.value)} style={{ width: 'auto' }}>
+              <option value="easy">쉬움</option>
+              <option value="normal">보통</option>
+              <option value="hard">어려움</option>
+            </select>
+            <button
+              className="gold"
+              onClick={addBot}
+              disabled={botBusy || room.players.length >= 9}
+            >
+              {botBusy ? '추가 중...' : '+ 봇 추가'}
+            </button>
+            {room.players.length >= 9 && <span className="hint">최대 9명이에요</span>}
+          </div>
+        )}
         <div className="row" style={{ marginTop: 12 }}>
           <button onClick={leave}>나가기</button>
           <button className={myReady ? '' : 'primary'} onClick={toggleReady}>
