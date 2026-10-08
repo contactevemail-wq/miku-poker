@@ -504,6 +504,23 @@ io.on('connection', (socket) => {
     cb({ room: await lobbyState(room) });
   });
 
+  socket.on('list_rooms', async (cb) => {
+    const list = [];
+    for (const room of rooms.values()) {
+      list.push({
+        code: room.code,
+        name: room.name,
+        gameType: room.gameType,
+        playerCount: room.players.length,
+        maxPlayers: 9,
+        state: room.state, // 'lobby' | 'playing'
+        hasPassword: !!room.password,
+        botCount: room.settings.botCount || 0,
+      });
+    }
+    cb({ rooms: list });
+  });
+
   socket.on('join_room', async ({ code, password }, cb) => {
     const u = await me();
     if (!u) return cb({ error: '로그인이 필요해요' });

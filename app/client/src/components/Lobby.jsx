@@ -1,5 +1,5 @@
 // 🃏 로비 — 방 만들기 / 초대 코드 입장 / 프로필 / 기록 / 마스터 패널 (13-2 작성)
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { socket, emitAsync } from '../socket';
 import Avatar from './Avatar';
 import Profile from './Profile';
@@ -201,6 +201,32 @@ export default function Lobby({ user, onLogout, onEnterRoom, onUserUpdate }) {
   const [joinPw, setJoinPw] = useState('');
   const [joinErr, setJoinErr] = useState('');
   const [joining, setJoining] = useState(false);
+  const [roomList, setRoomList] = useState([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+
+  const loadRooms = async () => {
+    setLoadingRooms(true);
+    try {
+      const r = await emitAsync('list_rooms');
+      setRoomList(r.rooms || []);
+    } catch { /* ignore */ }
+    setLoadingRooms(false);
+  };
+
+  useEffect(() => { loadRooms(); }, []);
+
+  const joinRoomByCode = async (c) => {
+    setJoinErr('');
+    setJoining(true);
+    try {
+      const r = await emitAsync('join_room', { code: c, password: joinPw });
+      if (r.error) setJoinErr(r.error);
+      else onEnterRoom(c);
+    } catch {
+      setJoinErr('서버에 연결할 수 없어요');
+    }
+    setJoining(false);
+  };
 
   const join = async () => {
     setJoinErr('');
@@ -291,6 +317,42 @@ export default function Lobby({ user, onLogout, onEnterRoom, onUserUpdate }) {
               onKeyDown={(e) => e.key === 'Enter' && join()} />
           </div>
           <div className="error">{joinErr}</div>
+        </div>
+        {/* 🏠 방 목록 */}
+        <div className="field" style={{ marginTop: 16 }}>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <label style={{ margin: 0 }}>🏠 진행 중인 방</label>
+            <button className="link-btn" onClick={loadRooms} title="새로고침">🔄</button>
+          </div>
+          {loadingRooms ? (
+            <div className="sub">불러오는 중...</div>
+          ) : roomList.length === 0 ? (
+            <div className="sub">진행 중인 방이 없어요. 방을 만들어보세요!</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+              {roomList.map((r) => (
+                <div key={r.code} className="room-item"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '10px 12px', background: 'rgba(255,255,255,0.05)',
+                    borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>
+                      {r.hasPassword && '🔒 '}{r.name}
+                      {r.botCount > 0 && ` 🤖${r.botCount}`}
+                    </div>
+                    <div className="sub" style={{ fontSize: 12 }}>
+                      {r.gameType === 'holdem' ? '홀덤' : r.gameType} · {r.playerCount}/{r.maxPlayers}명 ·
+                      {r.state === 'playing' ? ' 🎮 진행 중' : ' ⏳ 대기 중'}
+                    </div>
+                  </div>
+                  <button className="gold" disabled={joining || r.state === 'playing'}
+                    onClick={() => joinRoomByCode(r.code)}>
+                    입장
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="row" style={{ marginTop: 14 }}>
           <button onClick={() => setView('profile')}>🎨 프로필</button>
