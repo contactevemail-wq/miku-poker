@@ -93,10 +93,10 @@ export default function Table({ user, room, onLeave }) {
   }, []);
 
   const me = useMemo(
-    () => table?.players.find((p) => p.id === user.id),
+    () => table?.players.find((p) => String(p.id) === String(user.id)),
     [table, user.id]
   );
-  const isMyTurn = table && table.actionPlayerId === user.id;
+  const isMyTurn = table && String(table.actionPlayerId) === String(user.id);
   const skin = user.skin || 'classic';
 
   const doRebuy = async () => {
@@ -147,7 +147,7 @@ export default function Table({ user, room, onLeave }) {
         </div>
         {table.players.map((p, i) => {
           const pos = seatPos(i, n);
-          const isMe = p.id === user.id;
+          const isMe = String(p.id) === String(user.id);
           const holeCards = p.hole || [];
           return (
             <div key={p.id} className={`seat${table.actionPlayerId === p.id ? ' active' : ''}${p.folded ? ' folded' : ''}`}

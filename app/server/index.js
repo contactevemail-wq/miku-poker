@@ -382,7 +382,20 @@ function onHandEnd(room) {
       }, 8000);
     }
   } else {
-    setTimeout(() => endGame(room), 8000);
+    // 단판 모드: 칩이 남은 플레이어가 1명만 남을 때까지 핸드 반복
+    // (마스터 스펙: "우승자 한 번만 나오면 끝" = 칩을 다 딸 때까지)
+    const alive = t.players.filter((p) => p.stack > 0);
+    if (alive.length <= 1) {
+      setTimeout(() => endGame(room), 8000);
+    } else {
+      // 다음 핸드 시작 (8초 후)
+      io.to(room.code).emit('notice', `다음 핸드 시작까지 8초... (남은 플레이어 ${alive.length}명)`);
+      setTimeout(() => {
+        if (room.state !== 'playing') return;
+        try { startHand(room); }
+        catch (e) { io.to(room.code).emit('notice', e.message); }
+      }, 8000);
+    }
   }
 }
 
@@ -426,6 +439,7 @@ io.on('connection', (socket) => {
   let userId = null;
 
   socket.on('auth', async ({ userId: id }) => {
+    id = Number(id);
     const u = await db.getUser(id);
     if (!u || !u.approved) return socket.emit('auth_error', '승인되지 않은 계정이에요');
     userId = id;
