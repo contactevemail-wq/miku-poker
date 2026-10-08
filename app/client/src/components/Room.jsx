@@ -102,6 +102,11 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
     socket.on('room_update', onRoom);
     socket.on('chat', onChat);
     socket.on('game_over', onGameOver);
+    // 레이스 컨디션 방지: 마운트 시 현재 방 상태 직접 조회
+    // (create_room/join_room의 broadcast가 컴포넌트 마운트보다 먼저 올 수 있음)
+    emitAsync('get_room', { code }).then((r) => {
+      if (r.room && r.room.code === code) setRoom(r.room);
+    }).catch(() => {});
     return () => {
       socket.off('room_update', onRoom);
       socket.off('chat', onChat);

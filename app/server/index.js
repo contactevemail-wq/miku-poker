@@ -23,24 +23,24 @@ const io = new Server(http, { cors: { origin: '*' } });
 app.use(express.json({ limit: '2mb' }));
 
 /* ---------- REST: 인증 ---------- */
-app.post('/api/signup', (req, res) => {
+app.post('/api/signup', async (req, res) => {
   try {
-    const u = db.createUser(req.body.name, req.body.pin);
+    const u = await db.createUser(req.body.name, req.body.pin);
     res.json({ user: u, pending: !u.approved });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   try {
-    res.json({ user: db.verifyUser(req.body.name, req.body.pin) });
+    res.json({ user: await db.verifyUser(req.body.name, req.body.pin) });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
-app.get('/api/records', (req, res) => {
-  res.json(db.getRecords(30));
+app.get('/api/records', async (req, res) => {
+  res.json(await db.getRecords(30));
 });
-app.get('/api/skins', (req, res) => {
+app.get('/api/skins', async (req, res) => {
   // 내장 2종(클래식=SVG 드로잉, MIKU=아트워크) + 스캔 등록된 유효 스킨
   const builtinKeys = new Set(['classic', 'miku']);
-  const custom = db.listSkins()
+  const custom = await db.listSkins()
     .filter((s) => s.enabled && !builtinKeys.has(s.key))
     .map((s) => ({ key: s.key, name: s.name }));
   res.json([
@@ -82,7 +82,7 @@ app.post('/api/skins/upload',
       // 마스터 인증 (이름+4자리)
       let u;
       try {
-        u = db.verifyUser(String(req.query.name || ''), String(req.query.pin || ''));
+        u = await db.verifyUser(String(req.query.name || ''), String(req.query.pin || ''));
       } catch (e) {
         return res.status(403).json({ error: e.message });
       }
@@ -124,7 +124,7 @@ app.post('/api/skins/upload',
         // /tmp와 workspace가 다른 디바이스일 수 있어 rename 대신 copy
         cpSync(skinDir, dest, { recursive: true });
         rmSync(tmpDir, { recursive: true, force: true });
-        db.upsertSkin(key, v.meta.name);
+        await db.upsertSkin(key, v.meta.name);
         res.json({ ok: true, key, name: v.meta.name });
       } finally {
         rmSync(tmpZip, { force: true });
@@ -134,8 +134,8 @@ app.post('/api/skins/upload',
     }
   }
 );
-app.get('/api/avatar-shop', (req, res) => {
-  res.json({ slots: db.AVATAR_SLOTS, parts: db.listAvatarParts() });
+app.get('/api/avatar-shop', async (req, res) => {
+  res.json({ slots: db.AVATAR_SLOTS, parts: await db.listAvatarParts() });
 });
 
 /* ---------- 정적 파일 ---------- */
@@ -144,7 +144,7 @@ app.use('/avatar-assets', express.static(path.join(__dirname, '..', 'avatar-asse
 const distDir = path.join(__dirname, '..', 'client', 'dist');
 if (existsSync(distDir)) {
   app.use(express.static(distDir));
-  app.get(/^(?!\/api|\/skins).*/, (req, res) => res.sendFile(path.join(distDir, 'index.html')));
+  app.get(/^(?!\/api|\/skins).*/, async (req, res) => res.sendFile(path.join(distDir, 'index.html')));
 }
 
 /* ---------- 방 관리 (인메모리) ---------- */
@@ -161,13 +161,13 @@ function genCode() {
   return code;
 }
 
-function getRoomBySocket(socket) {
+async function getRoomBySocket(socket) {
   for (const room of rooms.values())
     if (room.players.some((p) => p.socketId === socket.id)) return room;
   return null;
 }
 
-function lobbyState(room) {
+async function lobbyState(room) {
   return {
     code: room.code, name: room.name, gameType: room.gameType,
     hostId: room.hostId, settings: room.settings,
@@ -176,11 +176,11 @@ function lobbyState(room) {
   };
 }
 
-function broadcastRoom(room) {
+async function broadcastRoom(room) {
   io.to(room.code).emit('room_update', lobbyState(room));
 }
 
-function broadcastTable(room) {
+async function broadcastTable(room) {
   // 핸드는 본인에게만 → 소켓별 개별 전송
   for (const p of room.players) {
     const sock = userSockets.get(p.userId);
@@ -190,17 +190,17 @@ function broadcastTable(room) {
 }
 
 /** 게임 중 프로필(아바타/색상/장착) 변경 시 테이블 스냅샷 동기화 (13-1) */
-function syncTableProfile(room, userId) {
+async function syncTableProfile(room, userId) {
   if (!room?.table) return;
   const tp = room.table.players.find((p) => p.id === userId);
   if (!tp) return;
-  const u = db.getUser(userId);
+  const u = await db.getUser(userId);
   if (!u) return;
   tp.avatar = u.avatar; tp.color = u.color; tp.title = u.title; tp.equipped = u.equipped;
   broadcastTable(room);
 }
 
-function clearTimers(room) {
+async function clearTimers(room) {
   if (room.actionTimer) clearTimeout(room.actionTimer);
   if (room.blindTimer) clearInterval(room.blindTimer);
   room.actionTimer = null; room.blindTimer = null;
@@ -275,7 +275,7 @@ function armTimer(room) {
   return armActionTimer(room);
 }
 
-function afterAct(room) {
+async function afterAct(room) {
   const t = room.table;
   broadcastTable(room);
   if (t.street === STREET.DONE) {
@@ -286,14 +286,14 @@ function afterAct(room) {
   }
 }
 
-function settleStacksToAccounts(room) {
+async function settleStacksToAccounts(room) {
   // 테이블 스택 → 계정 칩으로 복귀. profit 계산용 반환
   const profits = [];
   for (const p of room.table.players) {
-    const u = db.getUser(p.id);
+    const u = await db.getUser(p.id);
     if (!u) continue;
     const profit = p.stack - room.buyinPaid.get(p.id);
-    db.deltaChips(p.id, p.stack);
+    await db.deltaChips(p.id, p.stack);
     profits.push({ userId: p.id, name: p.name, stack: p.stack, profit });
   }
   return profits;
@@ -332,8 +332,8 @@ function onHandEnd(room) {
   }
 }
 
-function endGame(room) {
-  const profits = settleStacksToAccounts(room);
+async function endGame(room) {
+  const profits = await settleStacksToAccounts(room);
   let ranked;
   if (room.settings.mode === 'series' && room.settings.finalScoring === 'coins') {
     ranked = profits
@@ -345,7 +345,7 @@ function endGame(room) {
       .map((p, i) => ({ ...p, rank: i + 1 }));
   }
   const winner = ranked[0];
-  db.addRecord({
+  await db.addRecord({
     game_type: room.gameType,
     mode: room.settings.mode,
     player_count: ranked.length,
@@ -365,18 +365,18 @@ function endGame(room) {
 io.on('connection', (socket) => {
   let userId = null;
 
-  socket.on('auth', ({ userId: id }) => {
-    const u = db.getUser(id);
+  socket.on('auth', async ({ userId: id }) => {
+    const u = await db.getUser(id);
     if (!u || !u.approved) return socket.emit('auth_error', '승인되지 않은 계정이에요');
     userId = id;
     userSockets.set(id, socket);
     socket.emit('auth_ok', db.sanitize(u));
   });
 
-  const me = () => (userId ? db.getUser(userId) : null);
+  const me = async () => (userId ? await db.getUser(userId) : null);
 
-  socket.on('create_room', ({ name, gameType, settings }, cb) => {
-    const u = me();
+  socket.on('create_room', async ({ name, gameType, settings }, cb) => {
+    const u = await me();
     if (!u) return cb({ error: '로그인이 필요해요' });
     const code = genCode();
     const room = {
@@ -403,8 +403,8 @@ io.on('connection', (socket) => {
     cb({ code });
   });
 
-  socket.on('join_room', ({ code, password }, cb) => {
-    const u = me();
+  socket.on('join_room', async ({ code, password }, cb) => {
+    const u = await me();
     if (!u) return cb({ error: '로그인이 필요해요' });
     const room = rooms.get((code || '').toUpperCase());
     if (!room) return cb({ error: '방을 찾을 수 없어요' });
@@ -422,7 +422,7 @@ io.on('connection', (socket) => {
     cb({ ok: true });
   });
 
-  socket.on('leave_room', () => {
+  socket.on('leave_room', async () => {
     const room = getRoomBySocket(socket);
     if (!room) return;
     room.players = room.players.filter((p) => p.socketId !== socket.id);
@@ -445,7 +445,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('start_game', (cb) => {
+  socket.on('start_game', async (cb) => {
     const room = getRoomBySocket(socket);
     if (!room || room.hostId !== userId) return cb?.({ error: '호스트만 시작할 수 있어요' });
     if (room.players.length < 2) return cb?.({ error: '2명 이상 필요해요' });
@@ -455,12 +455,12 @@ io.on('connection', (socket) => {
     const table = new Tbl({ sb: s.sb, bb: s.bb, pineappleVariant: s.pineappleVariant, blackjackBet: s.blackjackBet, studAnte: s.studAnte });
     room.buyinPaid = new Map();
     for (const p of room.players) {
-      const u = db.getUser(p.userId);
+      const u = await db.getUser(p.userId);
       if (!u || u.chips < s.buyin) {
         socket.emit('notice', `${p.name}님 칩 부족으로 제외돼요`);
         continue;
       }
-      db.deltaChips(p.userId, -s.buyin);
+      await db.deltaChips(p.userId, -s.buyin);
       room.buyinPaid.set(p.userId, s.buyin);
       // 프로필 스냅샷 전달 (13-1: publicState 아바타/색상 표시용)
       table.addPlayer(p.userId, p.name, s.buyin, u);
@@ -477,7 +477,7 @@ io.on('connection', (socket) => {
     } catch (e) { cb?.({ error: e.message }); }
   });
 
-  socket.on('act', ({ action, amount }) => {
+  socket.on('act', async ({ action, amount }) => {
     const room = getRoomBySocket(socket);
     if (!room || !room.table || room.state !== 'playing') return;
     const t = room.table;
@@ -490,7 +490,7 @@ io.on('connection', (socket) => {
   });
 
   /* 파인애플 디스카드: 3장 중 1장 버림 */
-  socket.on('discard', ({ cardIndex }, cb) => {
+  socket.on('discard', async ({ cardIndex }, cb) => {
     const room = getRoomBySocket(socket);
     if (!room || !room.table || room.state !== 'playing') return cb?.({ error: '게임 중이 아니에요' });
     const t = room.table;
@@ -502,16 +502,16 @@ io.on('connection', (socket) => {
     afterAct(room);
   });
 
-  socket.on('rebuy', (cb) => {
+  socket.on('rebuy', async (cb) => {
     const room = getRoomBySocket(socket);
     if (!room || !room.table) return cb?.({ error: '게임 중이 아니에요' });
     const s = room.settings;
     if (!s.rebuyAllowed) return cb?.({ error: '리바이가 허용되지 않은 방이에요' });
     const tp = room.table.players.find((p) => p.id === userId);
     if (!tp || tp.stack > 0) return cb?.({ error: '리바이 대상이 아니에요' });
-    const u = db.getUser(userId);
+    const u = await db.getUser(userId);
     if (u.chips < s.buyin) return cb?.({ error: '계정 칩이 부족해요. 마스터에게 요청하세요!' });
-    db.deltaChips(userId, -s.buyin);
+    await db.deltaChips(userId, -s.buyin);
     tp.stack = s.buyin;
     tp.allin = false; tp.folded = false; tp.sittingOut = false;
     room.buyinPaid.set(userId, (room.buyinPaid.get(userId) || 0) + s.buyin);
@@ -520,9 +520,9 @@ io.on('connection', (socket) => {
     cb?.({ ok: true });
   });
 
-  socket.on('chat', ({ text }) => {
+  socket.on('chat', async ({ text }) => {
     const room = getRoomBySocket(socket);
-    const u = me();
+    const u = await me();
     if (!room || !u || !text) return;
     io.to(room.code).emit('chat', {
       name: u.name, color: u.color, text: String(text).slice(0, 200), at: Date.now(),
@@ -530,108 +530,108 @@ io.on('connection', (socket) => {
   });
 
   /* --- 마스터 --- */
-  socket.on('master_pending', (cb) => {
-    const u = me();
+  socket.on('master_pending', async (cb) => {
+    const u = await me();
     if (!u?.is_master) return cb({ error: '마스터만 가능해요' });
-    cb({ users: db.pendingUsers() });
+    cb({ users: await db.pendingUsers() });
   });
-  socket.on('master_approve', ({ userId: target, ok }, cb) => {
-    const u = me();
+  socket.on('master_approve', async ({ userId: target, ok }, cb) => {
+    const u = await me();
     if (!u?.is_master) return cb({ error: '마스터만 가능해요' });
-    const t = db.approveUser(target, ok);
+    const t = await db.approveUser(target, ok);
     const sock = userSockets.get(target);
     if (sock && ok) sock.emit('notice', '마스터가 승인했어요! 다시 로그인해주세요 🎉');
     cb({ user: t });
   });
-  socket.on('master_users', (cb) => {
-    const u = me();
+  socket.on('master_users', async (cb) => {
+    const u = await me();
     if (!u?.is_master) return cb({ error: '마스터만 가능해요' });
-    cb({ users: db.allUsers() });
+    cb({ users: await db.allUsers() });
   });
-  socket.on('master_give_chips', ({ userId: target, amount }, cb) => {
-    const u = me();
+  socket.on('master_give_chips', async ({ userId: target, amount }, cb) => {
+    const u = await me();
     if (!u?.is_master) return cb({ error: '마스터만 가능해요' });
     try {
-      const chips = db.deltaChips(target, Number(amount));
+      const chips = await db.deltaChips(target, Number(amount));
       cb({ chips });
     } catch (e) { cb({ error: e.message }); }
   });
-  socket.on('master_set_chips', ({ userId: target, chips }, cb) => {
-    const u = me();
+  socket.on('master_set_chips', async ({ userId: target, chips }, cb) => {
+    const u = await me();
     if (!u?.is_master) return cb({ error: '마스터만 가능해요' });
     try {
-      const updated = db.setChips(target, Number(chips));
+      const updated = await db.setChips(target, Number(chips));
       cb({ user: updated });
     } catch (e) { cb({ error: e.message }); }
   });
 
   /* --- 카드 스킨 관리 (마스터 전용, 13-1) --- */
   // skins/ 폴더를 스캔 → 검증 통과한 것만 DB 등록
-  socket.on('master_skin_refresh', (cb) => {
-    const u = me();
+  socket.on('master_skin_refresh', async (cb) => {
+    const u = await me();
     if (!u?.is_master) return cb?.({ error: '마스터만 가능해요' });
     const scanned = scanSkins(SKINS_DIR);
     const valid = [];
     const invalid = [];
     for (const s of scanned) {
-      if (s.valid) { db.upsertSkin(s.key, s.name); valid.push({ key: s.key, name: s.name }); }
+      if (s.valid) { await db.upsertSkin(s.key, s.name); valid.push({ key: s.key, name: s.name }); }
       else invalid.push({ key: s.key, errors: s.errors });
     }
     cb?.({ ok: true, valid, invalid });
   });
   // 등록된 스킨 목록 + 스캔 상태 (마스터 패널용)
-  socket.on('master_skin_list', (cb) => {
-    const u = me();
+  socket.on('master_skin_list', async (cb) => {
+    const u = await me();
     if (!u?.is_master) return cb?.({ error: '마스터만 가능해요' });
-    cb?.({ registered: db.listSkins(), scanned: scanSkins(SKINS_DIR) });
+    cb?.({ registered: await db.listSkins(), scanned: scanSkins(SKINS_DIR) });
   });
   // 스킨 활성화/비활성화 (유저에게 보이는 것만)
-  socket.on('master_skin_toggle', ({ key, enabled }, cb) => {
-    const u = me();
+  socket.on('master_skin_toggle', async ({ key, enabled }, cb) => {
+    const u = await me();
     if (!u?.is_master) return cb?.({ error: '마스터만 가능해요' });
     try {
-      db.setSkinEnabled(key, !!enabled);
+      await db.setSkinEnabled(key, !!enabled);
       cb?.({ ok: true });
     } catch (e) { cb?.({ error: e.message }); }
   });
 
   /* --- 프로필/기록 --- */
-  socket.on('update_profile', (profile, cb) => {
-    if (!me()) return cb?.({ error: '로그인이 필요해요' });
-    const updated = db.updateProfile(userId, profile);
-    syncTableProfile(getRoomBySocket(socket), userId);
+  socket.on('update_profile', async (profile, cb) => {
+    if (!await me()) return cb?.({ error: '로그인이 필요해요' });
+    const updated = await db.updateProfile(userId, profile);
+    await syncTableProfile(getRoomBySocket(socket), userId);
     cb({ user: updated });
   });
-  socket.on('my_records', (cb) => cb({ records: db.myRecords(userId) }));
+  socket.on('my_records', async (cb) => cb({ records: await db.myRecords(userId) }));
 
   /* --- 아바타 상점 (13-1) --- */
-  socket.on('shop_list', (cb) => {
-    if (!me()) return cb?.({ error: '로그인이 필요해요' });
+  socket.on('shop_list', async (cb) => {
+    if (!await me()) return cb?.({ error: '로그인이 필요해요' });
     cb?.({
       slots: db.AVATAR_SLOTS,
-      parts: db.listAvatarParts(),
-      owned: db.myAvatarParts(userId),
-      loadout: db.getLoadout(userId),
-      chips: me().chips,
+      parts: await db.listAvatarParts(),
+      owned: await db.myAvatarParts(userId),
+      loadout: await db.getLoadout(userId),
+      chips: await me().chips,
     });
   });
-  socket.on('shop_buy', ({ partId }, cb) => {
-    if (!me()) return cb?.({ error: '로그인이 필요해요' });
+  socket.on('shop_buy', async ({ partId }, cb) => {
+    if (!await me()) return cb?.({ error: '로그인이 필요해요' });
     try {
-      const r = db.buyAvatarPart(userId, partId);
-      cb?.({ ok: true, part: r.part, chips: r.chips, owned: db.myAvatarParts(userId) });
+      const r = await db.buyAvatarPart(userId, partId);
+      cb?.({ ok: true, part: r.part, chips: r.chips, owned: await db.myAvatarParts(userId) });
     } catch (e) { cb?.({ error: e.message }); }
   });
-  socket.on('equip_avatar', ({ partId }, cb) => {
-    if (!me()) return cb?.({ error: '로그인이 필요해요' });
+  socket.on('equip_avatar', async ({ partId }, cb) => {
+    if (!await me()) return cb?.({ error: '로그인이 필요해요' });
     try {
-      const loadout = db.equipAvatarPart(userId, partId);
-      syncTableProfile(getRoomBySocket(socket), userId);
+      const loadout = await db.equipAvatarPart(userId, partId);
+      await syncTableProfile(getRoomBySocket(socket), userId);
       cb?.({ ok: true, loadout });
     } catch (e) { cb?.({ error: e.message }); }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     if (userId && userSockets.get(userId) === socket) userSockets.delete(userId);
     // 재접속을 위해 방에서는 유지 (액션 타이머가 자동 폴드 처리)
   });
