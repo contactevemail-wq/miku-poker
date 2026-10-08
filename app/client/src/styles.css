@@ -308,6 +308,19 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
 .timer-ring { flex: 0 0 auto; }
 .timer-label { font-weight: 800; font-size: 15px; color: var(--gold-light); }
 
+/* 🃏 쪼기 완료 후 컴팩트 앞면 표시 */
+.my-hand-done {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(0,0,0,.4); padding: 6px;
+}
+.my-hand-compact { display: flex; gap: 6px; }
+.my-hand-compact .playing-card { --card-w: 48px; }
+.repeek-btn {
+  padding: 8px 10px; font-size: 16px; border-radius: 10px;
+  background: rgba(245, 197, 66, 0.15);
+  border: 1px solid rgba(245, 197, 66, 0.35);
+}
+
 /* 🤖 대기실 봇 관리 */
 .bot-controls {
   display: flex; align-items: center; gap: 8px;
