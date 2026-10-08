@@ -1,5 +1,5 @@
 // 🃏 카드 컴포넌트 — 쪼기(피킹) 인터랙션 포함
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 const SUITS = ['♠', '♥', '♦', '♣'];
 const RANKS = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
@@ -48,13 +48,12 @@ export default function Card({ card, peekable = false, faceUp = false, small = f
   const [lift, setLift] = useState(0);       // 0~1 들림 정도
   const [revealed, setRevealed] = useState(faceUp);
   // 카드가 바뀌면(새 핸드) 공개 상태 리셋 — 쪼기 전 노출 방지
-  const prevCard = useRef(null);
+  // (useEffect로 이동: 렌더 중 setState 안티패턴 수정)
   const cardKey = card ? `${card.r}${card.s}` : 'null';
-  if (prevCard.current !== cardKey) {
-    prevCard.current = cardKey;
-    if (revealed) setRevealed(false);
-    if (lift !== 0) setLift(0);
-  }
+  useEffect(() => {
+    setRevealed(false);
+    setLift(0);
+  }, [cardKey, faceUp]);
   const [snapping, setSnapping] = useState(false);
   const [flipping, setFlipping] = useState(false);
   const gesture = useRef(null);

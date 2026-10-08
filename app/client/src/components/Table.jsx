@@ -165,7 +165,10 @@ export default function Table({ user, room, onLeave }) {
               {p.bet > 0 && <div className="bet">+{p.bet.toLocaleString()}</div>}
               <div className="hole">
                 {holeCards.map((c, j) => (
-                  c ? <Card key={j} card={c} faceUp skin={skin} />
+                  // 내 카드는 하단 쪼기 영역에서 확인 → 좌석에서는 뒷면만 표시
+                  // (마스터 버그: 쪼기 전에 좌석에 앞면으로 노출됨)
+                  isMe ? <CardBack key={j} skin={skin} />
+                  : c ? <Card key={j} card={c} faceUp skin={skin} />
                      : <CardBack key={j} skin={skin} />
                 ))}
               </div>
