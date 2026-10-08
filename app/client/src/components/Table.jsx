@@ -97,12 +97,8 @@ export default function Table({ user, room, onLeave }) {
   const [bannerTimer, setBannerTimer] = useState(0);
   // 새 핸드마다 내 카드 쪼기 상태를 초기화하기 위한 키
   const [handKey, setHandKey] = useState(0);
-  // 쪼기 완료 후 하단 영역 자동 숨김
-  const [peekHidden, setPeekHidden] = useState(false);
-  const handlePeeked = useCallback(() => {
-    // 1초 후 자동 숨김 (카드 확인할 시간)
-    setTimeout(() => setPeekHidden(true), 1500);
-  }, []);
+  // 쪼기 완료 후 앞면으로 계속 표시 (컴팩트)
+  const [peeked, setPeeked] = useState(false);
   const prevStreet = useRef(null);
   // 🪙 칩 이펙트 (날아가는 칩)
   const [chipFx, setChipFx] = useState([]);
@@ -152,7 +148,7 @@ export default function Table({ user, room, onLeave }) {
     const s = table.street;
     if ((prevStreet.current === 'done' || prevStreet.current === null) && s === 'preflop') {
       setHandKey((k) => k + 1);
-      setPeekHidden(false);
+      setPeeked(false);
       // 🃏 새 핸드 딜링 애니메이션
       prevBets.current = {};
       if (fxOnRef.current) {
@@ -370,24 +366,29 @@ export default function Table({ user, room, onLeave }) {
         )}
       </div>
 
-      {/* 내 핸드 쪼기 영역 — 쪼기 완료 후 자동 숨김 */}
-      {me && me.hole && me.hole[0] && !peekHidden && (
+      {/* 내 핸드 쪼기 영역 — 쪼기 전: 인터랙티브 / 쪼기 후: 앞면 컴팩트 표시 */}
+      {me && me.hole && me.hole[0] && !peeked && (
         <div style={{ background: 'rgba(0,0,0,.4)', padding: '8px' }}>
           <div className="my-hand">
             {me.hole.map((c, i) => (
               <span key={`${handKey}-${i}`} className={dealing && fxOn ? 'card-deal' : ''}
                 style={(dealing && fxOn) ? { animationDelay: `${i * 110}ms` } : undefined}>
-                <Card card={c} peekable skin={skin} onReveal={handlePeeked} />
+                <Card card={c} peekable skin={skin} onReveal={() => setPeeked(true)} />
               </span>
             ))}
           </div>
           <div className="spectate-note">👆 내 카드를 눌러 바로 확인 / 꾹 눌러 드래그하면 쪼아보기!</div>
         </div>
       )}
-      {me && me.hole && me.hole[0] && peekHidden && (
-        <div style={{ textAlign: 'center', padding: '6px' }}>
-          <button onClick={() => setPeekHidden(false)} style={{ fontSize: 13 }}>
-            🃏 내 카드 보기
+      {me && me.hole && me.hole[0] && peeked && (
+        <div className="my-hand-done">
+          <div className="my-hand-compact">
+            {me.hole.map((c, i) => (
+              <Card key={`done-${handKey}-${i}`} card={c} faceUp small skin={skin} />
+            ))}
+          </div>
+          <button className="repeek-btn" onClick={() => setPeeked(false)} title="다시 쪼기">
+            🔍
           </button>
         </div>
       )}
