@@ -14,6 +14,8 @@ body {
   background: #0a0f0d;
   color: #fff;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
 }
 
 button {
@@ -49,10 +51,13 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 
 .card-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
   background: radial-gradient(ellipse at center, #0d5c34 0%, #06130c 75%);
 }
 .panel {
@@ -134,9 +139,11 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 /* ---------- 테이블 ---------- */
 .table-wrap {
   min-height: 100vh;
+  min-height: 100dvh;
   background: radial-gradient(ellipse at center, var(--felt) 0%, var(--felt-dark) 70%, #04120a 100%);
   display: flex; flex-direction: column;
   overflow: hidden;
+  padding-top: env(safe-area-inset-top);
 }
 .poker-table {
   position: relative;
@@ -187,6 +194,7 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 .action-bar {
   display: flex; gap: 8px; justify-content: center; align-items: center;
   padding: 12px; background: rgba(0,0,0,.5); flex-wrap: wrap;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 .action-bar .to-call { color: #fde68a; font-weight: 700; }
 .raise-ctl { display: flex; gap: 8px; align-items: center; }
@@ -196,9 +204,9 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   height: 130px; display: flex; flex-direction: column;
 }
 .chat-msgs { flex: 1; overflow-y: auto; padding: 8px 12px; font-size: 13px; }
-.chat-input { display: flex; gap: 8px; padding: 8px; }
+.chat-input { display: flex; gap: 8px; padding: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
 .notice-toast {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  position: fixed; top: calc(16px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,.8); padding: 10px 20px; border-radius: 12px;
   z-index: 100; font-size: 14px; border: 1px solid var(--gold);
 }
@@ -227,6 +235,7 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 .topbar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 16px; background: rgba(0,0,0,.5);
+  padding-top: calc(10px + env(safe-area-inset-top));
 }
 .topbar .chips { color: var(--gold); font-weight: 800; }
 .master-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -299,8 +308,11 @@ input:focus, select:focus { outline: 2px solid #10b981; }
 }
 .series-hud .coins { color: var(--gold); }
 .results-screen {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  padding: 20px; background: radial-gradient(ellipse at center, #0d5c34 0%, #06130c 75%);
+  min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at center, #0d5c34 0%, #06130c 75%);
 }
 .rank-row {
   display: flex; align-items: center; gap: 12px;
@@ -367,3 +379,40 @@ input:focus, select:focus { outline: 2px solid #10b981; }
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- 모바일 최적화 ---------- */
+@media (max-width: 480px) {
+  :root { --card-w: 56px; } /* 커뮤니티 카드 축소 */
+
+  .panel { padding: 24px 20px; }
+  .panel h1 { font-size: 24px; }
+
+  /* 테이블 */
+  .poker-table { margin: 8px; border-width: 6px; min-height: 340px; }
+  .seat .avatar { width: 44px; height: 44px; }
+  .seat .hole .playing-card { --card-w: 40px; }
+  .seat .name { font-size: 11px; max-width: 72px; }
+  .seat .stack { font-size: 11px; }
+  .my-hand .playing-card { --card-w: 72px; }
+  .community { gap: 5px; }
+  .pot { font-size: 15px; padding: 4px 14px; }
+  .hand-name-tag { font-size: 12px; top: 66%; }
+
+  /* 액션바 */
+  .action-bar { padding: 10px 8px; gap: 6px; }
+  .action-bar button { padding: 10px 12px; font-size: 14px; }
+  .raise-ctl input[type=range] { width: 100px; }
+
+  /* 입력창 줌 방지 (iOS는 16px 미만 포커스 시 자동 줌) */
+  input, select { font-size: 16px; }
+
+  /* 상점 */
+  .part-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* 대기실 */
+  .code-big { font-size: 32px; letter-spacing: 5px; }
+  .settings-grid { grid-template-columns: 1fr; }
+
+  /* 채팅 */
+  .chat-box { height: 110px; }
+}
