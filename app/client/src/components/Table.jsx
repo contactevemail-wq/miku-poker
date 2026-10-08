@@ -23,6 +23,42 @@ function potChipCount(pot) {
   return 6;
 }
 
+const TURN_SECONDS = 30;
+
+/** ⏱️ 액션 타이머 — 원형 프로그레스 + 숫자 카운트다운 */
+function TurnTimer({ actionPlayerId, players, isMyTurn }) {
+  const [left, setLeft] = useState(TURN_SECONDS);
+  // 차례가 바뀌면 리셋
+  useEffect(() => {
+    setLeft(TURN_SECONDS);
+    const t = setInterval(() => {
+      setLeft((v) => (v > 0 ? v - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [actionPlayerId]);
+  const actor = players.find((p) => String(p.id) === String(actionPlayerId));
+  const frac = left / TURN_SECONDS;
+  const R = 16;
+  const C = 2 * Math.PI * R;
+  const urgent = left <= 10;
+  return (
+    <div className={`turn-timer${urgent ? ' urgent' : ''}`} style={{ textAlign: 'center' }}>
+      <svg width="44" height="44" viewBox="0 0 44 44" className="timer-ring">
+        <circle cx="22" cy="22" r={R} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="4" />
+        <circle cx="22" cy="22" r={R} fill="none"
+          stroke={urgent ? '#ef4444' : '#f5c542'} strokeWidth="4" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={C * (1 - frac)}
+          transform="rotate(-90 22 22)"
+          style={{ transition: 'stroke-dashoffset 1s linear, stroke .3s' }} />
+        <text x="22" y="27" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="800">{left}</text>
+      </svg>
+      <div className="timer-label">
+        {isMyTurn ? '⏰ 당신의 차례예요!' : `⏳ ${actor?.name || ''} 차례`}
+      </div>
+    </div>
+  );
+}
+
 function ActionBar({ me, table, onAct }) {
   const [raiseTo, setRaiseTo] = useState(table.minRaiseTo);
   useEffect(() => setRaiseTo(table.minRaiseTo), [table.minRaiseTo, table.actionPlayerId]);
@@ -326,8 +362,12 @@ export default function Table({ user, room, onLeave }) {
         </div>
       )}
 
-      {isMyTurn && (
-        <div className="turn-timer" style={{ textAlign: 'center' }}>⏰ 당신의 차례예요! (30초)</div>
+      {table.actionPlayerId && (
+        <TurnTimer
+          actionPlayerId={table.actionPlayerId}
+          players={table.players}
+          isMyTurn={isMyTurn}
+        />
       )}
       {isMyTurn && <ActionBar me={me} table={table} onAct={onAct} />}
       {me && me.stack === 0 && room.settings?.rebuyAllowed && (
