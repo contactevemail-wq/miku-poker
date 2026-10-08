@@ -137,6 +137,16 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
     setStarting(false);
   };
 
+  const toggleReady = async () => {
+    setStartErr('');
+    try {
+      const r = await emitAsync('toggle_ready');
+      if (r.error) setStartErr(r.error);
+    } catch {
+      setStartErr('서버에 연결할 수 없어요');
+    }
+  };
+
   if (result) return <ResultsScreen result={result} onClose={() => setResult(null)} />;
 
   if (!room) {
@@ -160,6 +170,10 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
   }
 
   const isHost = room.hostId === user.id;
+  const me = room.players.find((p) => p.userId === user.id);
+  const myReady = !!me?.ready;
+  const humans = room.players.filter((p) => !p.isBot);
+  const allReady = humans.length > 0 && humans.every((p) => p.ready);
 
   return (
     <div className="card-page">
@@ -177,28 +191,34 @@ export default function Room({ user, code, onLeave, onUserUpdate }) {
         <div className="lobby-list" style={{ overflowY: 'auto' }}>
           {room.players.map((p) => (
             <div key={p.userId} className="lobby-player">
-              <div className="dot" style={{ background: '#059669' }}>
-                {p.name[0]}
+              <div className="dot" style={{ background: p.ready ? '#059669' : '#6b7280' }}>
+                {p.isBot ? '🤖' : p.name[0]}
               </div>
-              <div style={{ fontWeight: 700 }}>
+              <div style={{ fontWeight: 700, flex: 1 }}>
                 {p.name}
                 {p.isBot && <span className="bot-badge">🤖 봇</span>}
                 {p.userId === room.hostId && <span className="host-badge">HOST</span>}
+              </div>
+              <div className="ready-mark" title={p.ready ? '준비 완료' : '준비 중'}>
+                {p.ready ? '✅' : '⏳'}
               </div>
             </div>
           ))}
         </div>
         <div className="row" style={{ marginTop: 12 }}>
           <button onClick={leave}>나가기</button>
-          {isHost ? (
-            <button className="primary" disabled={starting || room.players.length < 2} onClick={startGame}>
+          <button className={myReady ? '' : 'primary'} onClick={toggleReady}>
+            {myReady ? '✅ 준비됨 (취소하기)' : '준비하기'}
+          </button>
+          {isHost && (
+            <button className="primary" disabled={starting || room.players.length < 2 || !allReady} onClick={startGame}>
               {starting ? '시작 중...' : `게임 시작 (${room.players.length}명)`}
             </button>
-          ) : (
-            <button disabled>호스트가 시작하기를 기다리는 중...</button>
           )}
         </div>
         {room.players.length < 2 && <div className="hint">2명 이상 모여야 시작할 수 있어요</div>}
+        {!allReady && room.players.length >= 2 && <div className="hint">⏳ 아직 준비 안 한 플레이어가 있어요</div>}
+        {allReady && isHost && <div className="hint">🎮 전원 준비 완료! 시작해주세요!</div>}
         <div className="error">{startErr}</div>
         <div style={{ marginTop: 12 }}>
           <ChatBox messages={chats} onSend={sendChat} />
