@@ -97,6 +97,12 @@ export default function Table({ user, room, onLeave }) {
   const [bannerTimer, setBannerTimer] = useState(0);
   // 새 핸드마다 내 카드 쪼기 상태를 초기화하기 위한 키
   const [handKey, setHandKey] = useState(0);
+  // 쪼기 완료 후 하단 영역 자동 숨김
+  const [peekHidden, setPeekHidden] = useState(false);
+  const handlePeeked = useCallback(() => {
+    // 1초 후 자동 숨김 (카드 확인할 시간)
+    setTimeout(() => setPeekHidden(true), 1500);
+  }, []);
   const prevStreet = useRef(null);
   // 🪙 칩 이펙트 (날아가는 칩)
   const [chipFx, setChipFx] = useState([]);
@@ -146,6 +152,7 @@ export default function Table({ user, room, onLeave }) {
     const s = table.street;
     if ((prevStreet.current === 'done' || prevStreet.current === null) && s === 'preflop') {
       setHandKey((k) => k + 1);
+      setPeekHidden(false);
       // 🃏 새 핸드 딜링 애니메이션
       prevBets.current = {};
       if (fxOnRef.current) {
@@ -275,7 +282,7 @@ export default function Table({ user, room, onLeave }) {
           </span>
         </div>
       )}
-      <div className="poker-table">
+      <div className={`poker-table${n >= 7 ? ' crowded' : ''}`}>
         <div className="pot">
           {potChipCount(pot) > 0 && (
             <span className="pot-stack" aria-hidden>
@@ -343,22 +350,45 @@ export default function Table({ user, room, onLeave }) {
                 {w.hand && <span style={{ color: '#9ca3af' }}> · {HAND_NAMES[w.hand.cat]}</span>}
               </div>
             ))}
+            {handEnd.showdown && handEnd.showdown.length > 0 && (
+              <div className="showdown-list">
+                <div className="showdown-title">🃏 쇼다운</div>
+                {handEnd.showdown.map((s, i) => (
+                  <div key={i} className="showdown-row">
+                    <span className="showdown-name">{s.name}</span>
+                    <span className="showdown-cards">
+                      {(s.hole || []).map((c, j) => (
+                        <Card key={j} card={c} small faceUp skin={skin} />
+                      ))}
+                    </span>
+                    <span className="showdown-hand">{s.handName}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* 내 핸드 쪼기 영역 */}
-      {me && me.hole && me.hole[0] && (
+      {/* 내 핸드 쪼기 영역 — 쪼기 완료 후 자동 숨김 */}
+      {me && me.hole && me.hole[0] && !peekHidden && (
         <div style={{ background: 'rgba(0,0,0,.4)', padding: '8px' }}>
           <div className="my-hand">
             {me.hole.map((c, i) => (
               <span key={`${handKey}-${i}`} className={dealing && fxOn ? 'card-deal' : ''}
                 style={(dealing && fxOn) ? { animationDelay: `${i * 110}ms` } : undefined}>
-                <Card card={c} peekable skin={skin} />
+                <Card card={c} peekable skin={skin} onReveal={handlePeeked} />
               </span>
             ))}
           </div>
           <div className="spectate-note">👆 내 카드를 눌러 바로 확인 / 꾹 눌러 드래그하면 쪼아보기!</div>
+        </div>
+      )}
+      {me && me.hole && me.hole[0] && peekHidden && (
+        <div style={{ textAlign: 'center', padding: '6px' }}>
+          <button onClick={() => setPeekHidden(false)} style={{ fontSize: 13 }}>
+            🃏 내 카드 보기
+          </button>
         </div>
       )}
 
