@@ -15,12 +15,12 @@ const GAME_TYPES = [
 
 const PRESETS = {
   light: {
-    label: '가볍게 한 판', buyin: 10000, sb: 50, bb: 100,
+    label: '가볍게 한 판', buyin: 10000, sb: 50, bb: 100, ante: 100,
     blindIntervalMin: 15, blindMult: 2, rebuyAllowed: true, rebuyMax: 3,
     mode: 'single', seriesCount: 5, finalScoring: 'chips', coinTable: [3, 2, 1],
   },
   serious: {
-    label: '진지하게 시리즈', buyin: 10000, sb: 25, bb: 50,
+    label: '진지하게 시리즈', buyin: 10000, sb: 25, bb: 50, ante: 50,
     blindIntervalMin: 10, blindMult: 2, rebuyAllowed: true, rebuyMax: 2,
     mode: 'series', seriesCount: 5, finalScoring: 'coins', coinTable: [3, 2, 1],
   },
@@ -104,7 +104,7 @@ function CreateForm({ onDone, onCancel }) {
             <NumField label="시작 SB / BB" value={s.sb} onChange={(v) => set('sb', v)} min={10} step={10} />
           </div>
           <div className="settings-grid">
-            <NumField label="BB (빅 블라인드)" value={s.bb} onChange={(v) => set('bb', v)} min={20} step={10} />
+            <NumField label="BB (빅 블라인드)" value={s.bb} onChange={(v) => { set('bb', v); set('ante', v); }} min={20} step={10} />
             <NumField label="블라인드 상승 간격 (분, 0=없음)" value={s.blindIntervalMin} onChange={(v) => set('blindIntervalMin', v)} />
           </div>
           <div className="settings-grid">
