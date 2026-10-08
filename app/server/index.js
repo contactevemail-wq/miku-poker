@@ -167,7 +167,7 @@ async function getRoomBySocket(socket) {
   return null;
 }
 
-async function lobbyState(room) {
+function lobbyState(room) {
   return {
     code: room.code, name: room.name, gameType: room.gameType,
     hostId: room.hostId, settings: room.settings,
@@ -177,7 +177,7 @@ async function lobbyState(room) {
 }
 
 async function broadcastRoom(room) {
-  io.to(room.code).emit('room_update', lobbyState(room));
+  io.to(room.code).emit('room_update', await lobbyState(room));
 }
 
 async function broadcastTable(room) {
@@ -401,6 +401,12 @@ io.on('connection', (socket) => {
     room.players.push({ userId, name: u.name, socketId: socket.id, ready: true });
     broadcastRoom(room);
     cb({ code });
+  });
+
+  socket.on('get_room', async ({ code }, cb) => {
+    const room = rooms.get((code || '').toUpperCase());
+    if (!room) return cb({ error: '방을 찾을 수 없어요' });
+    cb({ room: await lobbyState(room) });
   });
 
   socket.on('join_room', async ({ code, password }, cb) => {

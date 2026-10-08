@@ -1,0 +1,51 @@
+From b9ca42d2ec82cd532e7f3f3cac895cdcc85fe318 Mon Sep 17 00:00:00 2001
+From: Miku <miku@muse.local>
+Date: Thu, 8 Oct 2026 15:25:54 +0900
+Subject: [PATCH] =?UTF-8?q?lobbyState=20async=20=EC=8B=A4=EC=88=98=20?=
+ =?UTF-8?q?=EC=88=98=EC=A0=95:=20sync=20=EB=B3=B5=EA=B5=AC?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ app/server/index.js | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/app/server/index.js b/app/server/index.js
+index a2cee2d..d31526a 100644
+--- a/app/server/index.js
++++ b/app/server/index.js
+@@ -167,7 +167,7 @@ async function getRoomBySocket(socket) {
+   return null;
+ }
+ 
+-async function lobbyState(room) {
++function lobbyState(room) {
+   return {
+     code: room.code, name: room.name, gameType: room.gameType,
+     hostId: room.hostId, settings: room.settings,
+@@ -177,7 +177,7 @@ async function lobbyState(room) {
+ }
+ 
+ async function broadcastRoom(room) {
+-  io.to(room.code).emit('room_update', lobbyState(room));
++  io.to(room.code).emit('room_update', await lobbyState(room));
+ }
+ 
+ async function broadcastTable(room) {
+@@ -403,6 +403,12 @@ io.on('connection', (socket) => {
+     cb({ code });
+   });
+ 
++  socket.on('get_room', async ({ code }, cb) => {
++    const room = rooms.get((code || '').toUpperCase());
++    if (!room) return cb({ error: '방을 찾을 수 없어요' });
++    cb({ room: await lobbyState(room) });
++  });
++
+   socket.on('join_room', async ({ code, password }, cb) => {
+     const u = await me();
+     if (!u) return cb({ error: '로그인이 필요해요' });
+-- 
+2.43.0
+
