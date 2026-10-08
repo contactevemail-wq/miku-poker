@@ -47,6 +47,14 @@ function buzz(ms = 12) {
 export default function Card({ card, peekable = false, faceUp = false, small = false, skin = 'classic' }) {
   const [lift, setLift] = useState(0);       // 0~1 들림 정도
   const [revealed, setRevealed] = useState(faceUp);
+  // 카드가 바뀌면(새 핸드) 공개 상태 리셋 — 쪼기 전 노출 방지
+  const prevCard = useRef(null);
+  const cardKey = card ? `${card.r}${card.s}` : 'null';
+  if (prevCard.current !== cardKey) {
+    prevCard.current = cardKey;
+    if (revealed) setRevealed(false);
+    if (lift !== 0) setLift(0);
+  }
   const [snapping, setSnapping] = useState(false);
   const [flipping, setFlipping] = useState(false);
   const gesture = useRef(null);
