@@ -273,6 +273,47 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 .action-bar .to-call { color: #fde68a; font-weight: 700; }
+
+/* ⏱️ 액션 타이머 */
+.turn-timer {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(180deg, rgba(20,16,8,.85), rgba(10,8,4,.9));
+  border: 1px solid rgba(245, 197, 66, 0.4);
+  border-radius: 16px;
+  margin: 8px auto;
+  width: fit-content;
+  box-shadow: 0 0 16px rgba(245, 197, 66, 0.2);
+}
+.turn-timer.urgent {
+  border-color: rgba(239, 68, 68, 0.7);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  animation: timer-pulse 1s infinite;
+}
+@keyframes timer-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+.timer-ring { flex: 0 0 auto; }
+.timer-label { font-weight: 800; font-size: 15px; color: var(--gold-light); }
+
+/* 🤖 대기실 봇 관리 */
+.bot-controls {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent), #121814;
+  border: 1px solid rgba(245, 197, 66, 0.2);
+  border-radius: 14px;
+}
+.bot-controls-label { font-weight: 800; font-size: 14px; color: var(--gold-light); }
+.bot-remove {
+  padding: 6px 10px; font-size: 13px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+}
+.bot-remove:hover { background: rgba(239, 68, 68, 0.3); }
+
 .raise-ctl { display: flex; gap: 8px; align-items: center; }
 .raise-ctl input[type=range] { width: 140px; accent-color: var(--gold); }
 .chat-box {
