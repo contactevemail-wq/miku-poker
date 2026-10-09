@@ -60,6 +60,40 @@ function TurnTimer({ actionPlayerId, players, isMyTurn }) {
   );
 }
 
+/** 🎭 플레이어 표정 관리 (13-3 Phase 1 연동) */
+const EXPR_API = { win: 'cheers', bigpot: 'glitter', allin: 'blaze', lose: 'cry', fold: 'troubled', idle: 'default' };
+const EXPR_PRIORITY = { win: 6, bigpot: 5, allin: 4, lose: 3, fold: 2, idle: 1 };
+const EXPR_DURATION = 3000;
+
+function usePlayerExpressions() {
+  const [expr, setExpr] = useState({});
+  const timers = useRef({});
+  const trigger = useCallback((playerId, key) => {
+    const api = EXPR_API[key];
+    if (!api || !playerId) return;
+    const pid = String(playerId);
+    setExpr((prev) => {
+      const cur = prev[pid];
+      if (cur && EXPR_PRIORITY[cur.key] > EXPR_PRIORITY[key] && Date.now() < cur.until) return prev;
+      return { ...prev, [pid]: { key, api, until: Date.now() + EXPR_DURATION } };
+    });
+    clearTimeout(timers.current[pid]);
+    timers.current[pid] = setTimeout(() => {
+      setExpr((prev) => {
+        if (prev[pid]?.key === key) {
+          const next = { ...prev };
+          delete next[pid];
+          return next;
+        }
+        return prev;
+      });
+    }, EXPR_DURATION);
+  }, []);
+  useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
+  const getApi = useCallback((pid) => expr[String(pid)]?.api || 'default', [expr]);
+  return { trigger, getApi };
+}
+
 function ActionBar({ me, table, pot, onAct }) {
   const [raiseTo, setRaiseTo] = useState(table.minRaiseTo);
   useEffect(() => setRaiseTo(table.minRaiseTo), [table.minRaiseTo, table.actionPlayerId]);
@@ -117,6 +151,8 @@ export default function Table({ user, room, onLeave }) {
   const [handKey, setHandKey] = useState(0);
   // 쪼기 완료 후 앞면으로 계속 표시 (컴팩트)
   const [peeked, setPeeked] = useState(false);
+  // 🎭 표정 시스템
+  const { trigger: triggerExpr, getApi: getExpr } = usePlayerExpressions();
   const prevStreet = useRef(null);
   // 🪙 칩 이펙트 (날아가는 칩)
   const [chipFx, setChipFx] = useState([]);
@@ -188,12 +224,14 @@ export default function Table({ user, room, onLeave }) {
     prevStreet.current = s;
   }, [table]);
 
+  // 🎭 표정용 이전 플레이어 상태
+  const prevStates = useRef({});
   useEffect(() => {
     const onTable = (t) => {
       // 🪙 베팅 감지 → 칩이 좌석에서 팟으로 날아감
       const n = t.players.length;
       const isNewHand = t.street === 'preflop' && tableRef.current?.street !== 'preflop';
-      if (isNewHand) prevBets.current = {};
+      if (isNewHand) { prevBets.current = {}; prevStates.current = {}; }
       t.players.forEach((p, i) => {
         const prev = prevBets.current[p.id] || 0;
         if (p.bet > prev) {
@@ -202,6 +240,11 @@ export default function Table({ user, room, onLeave }) {
           sounds.chip();
         }
         prevBets.current[p.id] = p.bet;
+        // 🎭 표정: 올인/폴드 전환 감지
+        const ps = prevStates.current[p.id] || {};
+        if (p.allin && !ps.allin) triggerExpr(p.id, 'allin');
+        if (p.folded && !ps.folded) triggerExpr(p.id, 'fold');
+        prevStates.current[p.id] = { allin: !!p.allin, folded: !!p.folded };
       });
       tableRef.current = t;
       setTable(t); setHandEnd(null);
@@ -209,6 +252,13 @@ export default function Table({ user, room, onLeave }) {
     const onHandEnd = (h) => {
       // 🏆 승리 → 칩이 팟에서 승자에게 날아감
       const t = tableRef.current;
+      // 🎭 표정: 승자는 cheers (빅팟 10BB+는 glitter)
+      const totalPot = h.winners.reduce((s, w) => s + (w.amount || 0), 0);
+      const bb = t?.bb || room.settings?.bb || 100;
+      const isBigPot = totalPot >= bb * 10;
+      h.winners.forEach((w) => {
+        triggerExpr(w.id || w.userId, isBigPot ? 'bigpot' : 'win');
+      });
       if (t) {
         const n = t.players.length;
         h.winners.forEach((w) => {
@@ -350,9 +400,9 @@ export default function Table({ user, room, onLeave }) {
               style={{ left: `${pos.left}%`, top: `${pos.top}%` }}>
               {table.dealerId === p.id && <div className="dealer-btn">D</div>}
               {isMe ? (
-                <Avatar loadout={user.equipped || user.avatar_loadout} avatar={user.avatar} color={user.color} size={52} title={user.title} />
+                <Avatar loadout={user.equipped || user.avatar_loadout} avatar={user.avatar} color={user.color} size={52} title={user.title} expression={getExpr(user.id)} />
               ) : (
-                <Avatar loadout={p.equipped} color={p.color || '#22d3ee'} size={52} title={p.title ? `${p.name} ${p.title}` : p.name} />
+                <Avatar loadout={p.equipped} color={p.color || '#22d3ee'} size={52} title={p.title ? `${p.name} ${p.title}` : p.name} expression={getExpr(p.id)} />
               )}
               <div className="name" style={{ color: isMe ? user.color : (p.color || '#fff') }}>
                 {p.name}{isMe ? ' (나)' : ''}{p.isBot && !p.name.startsWith('🤖') ? ' 🤖' : ''}{p.allin ? ' 🔥올인' : ''}
