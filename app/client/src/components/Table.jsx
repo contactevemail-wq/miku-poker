@@ -1,6 +1,7 @@
 // 🃏 포커 테이블 — 좌석 배치 · 액션바 · 채팅 · 시리즈 HUD (13-2 작성)
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { socket, emitAsync } from '../socket';
+import { sounds, isSoundOn, toggleSound } from '../sounds';
 import Card, { CardBack } from './Card';
 import Avatar from './Avatar';
 import { ChatBox } from './Room';
@@ -59,13 +60,20 @@ function TurnTimer({ actionPlayerId, players, isMyTurn }) {
   );
 }
 
-function ActionBar({ me, table, onAct }) {
+function ActionBar({ me, table, pot, onAct }) {
   const [raiseTo, setRaiseTo] = useState(table.minRaiseTo);
   useEffect(() => setRaiseTo(table.minRaiseTo), [table.minRaiseTo, table.actionPlayerId]);
   if (!me || me.folded || me.sittingOut) return null;
   const toCall = me.toCall;
   const maxTo = me.bet + me.stack;
   const minTo = Math.min(table.minRaiseTo, maxTo);
+  const clamp = (v) => Math.min(Math.max(Math.round(v / 10) * 10, minTo), maxTo);
+  // 💰 프리셋: 팟 기준 베팅액
+  const presets = [
+    { label: '1/2팟', value: clamp(me.bet + pot / 2) },
+    { label: '풀팟', value: clamp(me.bet + pot) },
+    { label: '올인', value: maxTo },
+  ];
   return (
     <div className="action-bar">
       <span className="to-call">{toCall > 0 ? `콜 ${toCall.toLocaleString()}` : '체크 가능'}</span>
@@ -76,13 +84,23 @@ function ActionBar({ me, table, onAct }) {
         <button className="primary" onClick={() => onAct('call')}>콜 {Math.min(toCall, me.stack).toLocaleString()}</button>
       )}
       {maxTo > minTo && (
-        <div className="raise-ctl">
-          <input type="range" min={minTo} max={maxTo} step={10} value={Math.min(Math.max(raiseTo, minTo), maxTo)}
-            onChange={(e) => setRaiseTo(Number(e.target.value))} />
-          <button className="gold" onClick={() => onAct('raise', Math.min(Math.max(raiseTo, minTo), maxTo))}>
-            레이즈 {Math.min(Math.max(raiseTo, minTo), maxTo).toLocaleString()}
-          </button>
-        </div>
+        <>
+          <div className="preset-bets">
+            {presets.map((p) => (
+              <button key={p.label} className="preset-btn"
+                onClick={() => setRaiseTo(p.value)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="raise-ctl">
+            <input type="range" min={minTo} max={maxTo} step={10} value={clamp(raiseTo)}
+              onChange={(e) => setRaiseTo(Number(e.target.value))} />
+            <button className="gold" onClick={() => onAct('raise', clamp(raiseTo))}>
+              레이즈 {clamp(raiseTo).toLocaleString()}
+            </button>
+          </div>
+        </>
       )}
       <button onClick={() => onAct('allin')}>올인!</button>
     </div>
@@ -123,6 +141,12 @@ export default function Table({ user, room, onLeave }) {
   useEffect(() => {
     document.body.classList.toggle('no-fx', !fxOnRef.current);
   }, []);
+  // 🔊 사운드 토글
+  const [sndOn, setSndOn] = useState(() => isSoundOn());
+  const toggleSnd = useCallback(() => {
+    setSndOn(toggleSound());
+    sounds.click();
+  }, []);
 
   const spawnFx = useCallback((fx) => {
     if (!fxOnRef.current) return; // 꺼져 있으면 아무 작업도 안 함
@@ -149,8 +173,9 @@ export default function Table({ user, room, onLeave }) {
     if ((prevStreet.current === 'done' || prevStreet.current === null) && s === 'preflop') {
       setHandKey((k) => k + 1);
       setPeeked(false);
-      // 🃏 새 핸드 딜링 애니메이션
+      // 🃏 새 핸드 딜링 애니메이션 + 사운드
       prevBets.current = {};
+      sounds.deal();
       if (fxOnRef.current) {
         setDealing(true);
         const tid = setTimeout(() => {
@@ -174,6 +199,7 @@ export default function Table({ user, room, onLeave }) {
         if (p.bet > prev) {
           const pos = seatPos(i, n);
           spawnFx({ fx: `${pos.left}%`, fy: `${pos.top}%`, tx: '50%', ty: '32%', kind: 'bet' });
+          sounds.chip();
         }
         prevBets.current[p.id] = p.bet;
       });
@@ -196,6 +222,7 @@ export default function Table({ user, room, onLeave }) {
         });
       }
       setHandEnd(h); setBannerTimer(8);
+      sounds.win();
     };
     const onSeries = (s) => setSeries(s);
     const onChat = (m) => setChats((c) => [...c.slice(-99), m]);
@@ -232,6 +259,12 @@ export default function Table({ user, room, onLeave }) {
   );
   const isMyTurn = table && String(table.actionPlayerId) === String(user.id);
   const skin = user.skin || 'classic';
+  // ⏰ 내 차례 알림 사운드
+  const prevTurn = useRef(false);
+  useEffect(() => {
+    if (isMyTurn && !prevTurn.current) sounds.turn();
+    prevTurn.current = !!isMyTurn;
+  }, [isMyTurn]);
 
   const doRebuy = async () => {
     const r = await emitAsync('rebuy');
@@ -263,6 +296,10 @@ export default function Table({ user, room, onLeave }) {
           <button onClick={toggleFx} title={fxOn ? '애니메이션 끄기' : '애니메이션 켜기'}
             style={{ padding: '10px 12px', opacity: fxOn ? 1 : 0.55 }}>
             {fxOn ? '✨' : '🚫'}
+          </button>
+          <button onClick={toggleSnd} title={sndOn ? '사운드 끄기' : '사운드 켜기'}
+            style={{ padding: '10px 12px', opacity: sndOn ? 1 : 0.55 }}>
+            {sndOn ? '🔊' : '🔇'}
           </button>
           <button onClick={onLeave}>나가기</button>
         </div>
@@ -394,7 +431,7 @@ export default function Table({ user, room, onLeave }) {
           isMyTurn={isMyTurn}
         />
       )}
-      {isMyTurn && <ActionBar me={me} table={table} onAct={onAct} />}
+      {isMyTurn && <ActionBar me={me} table={table} pot={pot} onAct={onAct} />}
       {me && me.stack === 0 && room.settings?.rebuyAllowed && (
         <div className="action-bar">
           <span className="to-call">스택이 0이에요</span>
