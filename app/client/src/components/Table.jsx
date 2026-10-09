@@ -183,6 +183,18 @@ export default function Table({ user, room, onLeave }) {
     setSndOn(toggleSound());
     sounds.click();
   }, []);
+  // 🎨 테이블 테마 (13-3 Phase 2, localStorage 저장)
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('poker-theme') || 'classic'; } catch { return 'classic'; }
+  });
+  const cycleTheme = useCallback(() => {
+    const order = ['classic', 'dark', 'neon'];
+    const next = order[(order.indexOf(theme) + 1) % order.length];
+    setTheme(next);
+    try { localStorage.setItem('poker-theme', next); } catch {}
+    sounds.click();
+  }, [theme]);
+  const themeIcon = { classic: '🟢', dark: '🌙', neon: '⚡' }[theme];
 
   const spawnFx = useCallback((fx) => {
     if (!fxOnRef.current) return; // 꺼져 있으면 아무 작업도 안 함
@@ -323,7 +335,7 @@ export default function Table({ user, room, onLeave }) {
 
   if (!table) {
     return (
-      <div className="table-wrap">
+      <div className={"table-wrap theme-" + theme}>
         <div className="topbar">
           <b>🃏 {room.name}</b>
           <button onClick={onLeave}>나가기</button>
@@ -339,7 +351,7 @@ export default function Table({ user, room, onLeave }) {
   const pot = table.players.reduce((s, p) => s + p.bet, 0);
 
   return (
-    <div className="table-wrap">
+    <div className={"table-wrap theme-" + theme}>
       <div className="topbar">
         <b>🃏 {room.name}</b>
         <div className="row" style={{ flex: '0 0 auto', gap: 8 }}>
@@ -350,6 +362,10 @@ export default function Table({ user, room, onLeave }) {
           <button onClick={toggleSnd} title={sndOn ? '사운드 끄기' : '사운드 켜기'}
             style={{ padding: '10px 12px', opacity: sndOn ? 1 : 0.55 }}>
             {sndOn ? '🔊' : '🔇'}
+          </button>
+          <button onClick={cycleTheme} title={`테마 변경 (현재: ${theme})`}
+            style={{ padding: '10px 12px' }}>
+            {themeIcon}
           </button>
           <button onClick={onLeave}>나가기</button>
         </div>
