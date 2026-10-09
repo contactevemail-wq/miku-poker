@@ -203,6 +203,8 @@ export default function Lobby({ user, onLogout, onEnterRoom, onUserUpdate }) {
   const [joining, setJoining] = useState(false);
   const [roomList, setRoomList] = useState([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
+  const [gameFilter, setGameFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('players'); // players | waiting
 
   const loadRooms = async () => {
     setLoadingRooms(true);
@@ -214,6 +216,26 @@ export default function Lobby({ user, onLogout, onEnterRoom, onUserUpdate }) {
   };
 
   useEffect(() => { loadRooms(); }, []);
+
+  // ⚡ 빠른 입장: 대기 중인 첫 번째 방에 입장
+  const quickJoin = async () => {
+    const target = filteredRooms.find((r) => r.state !== 'playing' && !r.hasPassword);
+    if (target) joinRoomByCode(target.code);
+    else setJoinErr('입장 가능한 방이 없어요');
+  };
+
+  // 🔍 필터 + 정렬된 방 목록
+  const filteredRooms = (roomList || [])
+    .filter((r) => gameFilter === 'all' || r.gameType === gameFilter)
+    .sort((a, b) => {
+      if (sortBy === 'waiting') {
+        // 대기 중 먼저, 그 다음 인원 많은 순
+        if ((a.state === 'playing') !== (b.state === 'playing')) {
+          return a.state === 'playing' ? 1 : -1;
+        }
+      }
+      return (b.playerCount || 0) - (a.playerCount || 0);
+    });
 
   const joinRoomByCode = async (c) => {
     setJoinErr('');
@@ -322,15 +344,35 @@ export default function Lobby({ user, onLogout, onEnterRoom, onUserUpdate }) {
         <div className="field" style={{ marginTop: 16 }}>
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <label style={{ margin: 0 }}>🏠 진행 중인 방</label>
-            <button className="link-btn" onClick={loadRooms} title="새로고침">🔄</button>
+            <div className="row" style={{ gap: 4 }}>
+              <button className="gold" onClick={quickJoin} disabled={joining || loadingRooms}
+                title="대기 중인 방에 바로 입장" style={{ fontSize: 13, padding: '6px 12px' }}>
+                ⚡ 빠른 입장
+              </button>
+              <button className="link-btn" onClick={loadRooms} title="새로고침">🔄</button>
+            </div>
+          </div>
+          {/* 🔍 필터 + 정렬 */}
+          <div className="room-filters">
+            <select value={gameFilter} onChange={(e) => setGameFilter(e.target.value)} style={{ width: 'auto', fontSize: 13 }}>
+              <option value="all">전체 게임</option>
+              <option value="holdem">홀덤</option>
+              <option value="pineapple">파인애플</option>
+              <option value="blackjack">블랙잭</option>
+              <option value="seven">7포커</option>
+            </select>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{ width: 'auto', fontSize: 13 }}>
+              <option value="players">인원 많은 순</option>
+              <option value="waiting">대기 중 우선</option>
+            </select>
           </div>
           {loadingRooms ? (
             <div className="sub">불러오는 중...</div>
-          ) : roomList.length === 0 ? (
+          ) : filteredRooms.length === 0 ? (
             <div className="sub">진행 중인 방이 없어요. 방을 만들어보세요!</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-              {roomList.map((r) => (
+              {filteredRooms.map((r) => (
                 <div key={r.code} className="room-item"
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '10px 12px', background: 'rgba(255,255,255,0.05)',
