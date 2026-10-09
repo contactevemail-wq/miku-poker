@@ -60,10 +60,29 @@ function TurnTimer({ actionPlayerId, players, isMyTurn }) {
   );
 }
 
-/** 🎭 플레이어 표정 관리 (13-3 Phase 1 연동) */
-const EXPR_API = { win: 'cheers', bigpot: 'glitter', allin: 'blaze', lose: 'cry', fold: 'troubled', idle: 'default' };
-const EXPR_PRIORITY = { win: 6, bigpot: 5, allin: 4, lose: 3, fold: 2, idle: 1 };
+/** 🎭 플레이어 표정 관리 (13-3 Phase 1+3 연동) */
+const EXPR_API = {
+  win: 'cheers', bigpot: 'glitter', allin: 'blaze', lose: 'cry', fold: 'troubled', idle: 'default',
+  // Phase 3: 수동 이모티콘
+  love: 'love', chu: 'chu', wink: 'wink', angry: 'angry', oops: 'oops',
+};
+const EXPR_PRIORITY = {
+  win: 6, bigpot: 5, allin: 4, lose: 3, fold: 2, idle: 1,
+  love: 7, chu: 7, wink: 7, angry: 7, oops: 7, // 수동은 최우선
+};
 const EXPR_DURATION = 3000;
+
+/** 😊 수동 이모티콘 8종 (13-3 Phase 3) */
+const EMOTES = [
+  { key: 'win', emoji: '🎉', label: '환호' },
+  { key: 'lose', emoji: '😭', label: '눈물' },
+  { key: 'allin', emoji: '😡', label: '분노' },
+  { key: 'love', emoji: '😍', label: '하트' },
+  { key: 'chu', emoji: '😗', label: '뽀뽀' },
+  { key: 'wink', emoji: '😉', label: '윙크' },
+  { key: 'angry', emoji: '😠', label: '화남' },
+  { key: 'oops', emoji: '😅', label: '당황' },
+];
 
 function usePlayerExpressions() {
   const [expr, setExpr] = useState({});
@@ -195,6 +214,13 @@ export default function Table({ user, room, onLeave }) {
     sounds.click();
   }, [theme]);
   const themeIcon = { classic: '🟢', dark: '🌙', neon: '⚡' }[theme];
+  // 😊 이모티콘 패널 (13-3 Phase 3)
+  const [emoteOpen, setEmoteOpen] = useState(false);
+  const sendEmote = useCallback((key) => {
+    triggerExpr(user.id, key);
+    setEmoteOpen(false);
+    sounds.click();
+  }, [triggerExpr, user.id]);
 
   const spawnFx = useCallback((fx) => {
     if (!fxOnRef.current) return; // 꺼져 있으면 아무 작업도 안 함
@@ -506,7 +532,26 @@ export default function Table({ user, room, onLeave }) {
           </button>
         </div>
       )}
-      <ChatBox messages={chats} onSend={sendChat} />
+      {/* 😊 이모티콘 패널 */}
+      {emoteOpen && (
+        <div className="emote-panel">
+          {EMOTES.map((e) => (
+            <button key={e.key} className="emote-btn" onClick={() => sendEmote(e.key)} title={e.label}>
+              <span className="emote-emoji">{e.emoji}</span>
+              <span className="emote-label">{e.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="table-footer">
+        <button className={`emote-toggle${emoteOpen ? ' active' : ''}`}
+          onClick={() => setEmoteOpen((v) => !v)} title="이모티콘">
+          😊
+        </button>
+        <div style={{ flex: 1 }}>
+          <ChatBox messages={chats} onSend={sendChat} />
+        </div>
+      </div>
     </div>
   );
 }
