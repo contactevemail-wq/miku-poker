@@ -321,6 +321,9 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   border: 1px solid rgba(245, 197, 66, 0.35);
 }
 
+/* 🔍 로비 방 필터 */
+.room-filters { display: flex; gap: 8px; margin-top: 10px; }
+
 /* 🤖 대기실 봇 관리 */
 .bot-controls {
   display: flex; align-items: center; gap: 8px;
@@ -338,8 +341,25 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
 }
 .bot-remove:hover { background: rgba(239, 68, 68, 0.3); }
 
+/* 💰 프리셋 베팅 버튼 */
+.preset-bets { display: flex; gap: 6px; }
+.preset-btn {
+  padding: 8px 12px; font-size: 13px; font-weight: 800;
+  background: linear-gradient(180deg, rgba(245,197,66,.18), rgba(245,197,66,.08));
+  border: 1px solid rgba(245, 197, 66, 0.45);
+  border-radius: 10px; color: var(--gold-light);
+}
+.preset-btn:active { background: rgba(245, 197, 66, 0.3); }
+
 .raise-ctl { display: flex; gap: 8px; align-items: center; }
-.raise-ctl input[type=range] { width: 140px; accent-color: var(--gold); }
+.raise-ctl input[type=range] {
+  width: 140px; accent-color: var(--gold);
+  height: 28px; /* 모바일 터치 영역 확대 */
+}
+@media (max-width: 480px) {
+  .raise-ctl input[type=range] { width: 110px; height: 32px; }
+  .preset-btn { padding: 10px 14px; font-size: 14px; }
+}
 .chat-box {
   background: rgba(0,0,0,.55); border-top: 1px solid #1f2937;
   height: 130px; display: flex; flex-direction: column;
