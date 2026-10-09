@@ -76,9 +76,11 @@ export function loadoutToItemIds(resolved) {
     .filter((id) => Number.isInteger(id));
 }
 
-/** 장착 상태 → 메이플 렌더 URL */
+/** 장착 상태 → 메이플 렌더 URL (expression: 표정 API명) */
 export function avatarMapleUrl(loadout, avatar, opts) {
-  return mapleAvatarUrl(loadoutToItemIds(resolveLoadout(loadout, avatar)), opts);
+  const resolved = resolveLoadout(loadout, avatar);
+  const faceItemId = BY_ID[resolved.face]?.maple_item_id || null;
+  return mapleAvatarUrl(loadoutToItemIds(resolved), { ...opts, faceItemId });
 }
 
 /** 파츠 단품 미리보기 URL (기본 장착 + 해당 파츠만 교체) */
@@ -122,9 +124,9 @@ export function PartThumb({ partId, size = 40 }) {
   );
 }
 
-/** 아바타 — 원형, 얼굴 크롭 */
-export default function Avatar({ loadout, avatar, color = '#22d3ee', size = 44, title }) {
-  const url = avatarMapleUrl(loadout, avatar, { resize: 2 });
+/** 아바타 — 원형, 얼굴 크롭 (expression: 표정 API명, 예: 'cheers') */
+export default function Avatar({ loadout, avatar, color = '#22d3ee', size = 44, title, expression = null }) {
+  const url = avatarMapleUrl(loadout, avatar, { resize: 2, expression });
   return (
     <div
       className="avatar"
