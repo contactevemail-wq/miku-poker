@@ -4,14 +4,51 @@
   --felt: #0e5e36;
   --felt-dark: #072b1a;
   --felt-deep: #04170e;
-  --gold: #f5c542;
-  --gold-light: #fde68a;
-  --gold-dark: #b45309;
-  --gold-gradient: linear-gradient(135deg, #fde68a 0%, #f5c542 40%, #d97706 100%);
+  /* 🎨 테마 악센트 (13-3 Phase 2) — 테마 클래스가 오버라이드 */
+  --accent: #f5c542;
+  --accent-light: #fde68a;
+  --accent-dark: #b45309;
+  --accent-gradient: linear-gradient(135deg, #fde68a 0%, #f5c542 40%, #d97706 100%);
+  --rail: #201510;
+  /* 하위 호환: 기존 --gold* 는 --accent* 참조 */
+  --gold: var(--accent);
+  --gold-light: var(--accent-light);
+  --gold-dark: var(--accent-dark);
+  --gold-gradient: var(--accent-gradient);
   --bg: #070b09;
   --panel: rgba(16, 22, 19, 0.88);
   --card-w: 84px;
 }
+
+/* 🎨 테이블 테마 3종 (13-3 제작) */
+.theme-classic {
+  --felt: #0e5e36; --felt-dark: #072b1a; --felt-deep: #04170e;
+  --accent: #f5c542; --accent-light: #fde68a; --accent-dark: #b45309;
+  --accent-gradient: linear-gradient(135deg, #fde68a 0%, #f5c542 40%, #d97706 100%);
+  --bg: #070b09; --panel: rgba(16, 22, 19, 0.88); --rail: #201510;
+}
+.theme-dark {
+  --felt: #1b2740; --felt-dark: #0d1526; --felt-deep: #060b16;
+  --accent: #f5c542; --accent-light: #fde68a; --accent-dark: #b45309;
+  --accent-gradient: linear-gradient(135deg, #fde68a 0%, #f5c542 40%, #d97706 100%);
+  --bg: #04060c; --panel: rgba(10, 14, 24, 0.88); --rail: #232c44;
+}
+.theme-neon {
+  --felt: #141031; --felt-dark: #0a071e; --felt-deep: #050310;
+  --accent: #00f0ff; --accent-light: #a5f3fc; --accent-dark: #0e7490;
+  --accent-gradient: linear-gradient(135deg, #a5f3fc 0%, #00f0ff 40%, #7c3aed 100%);
+  --bg: #060312; --panel: rgba(12, 8, 28, 0.88); --rail: #1e1b3a;
+}
+.theme-neon .poker-table {
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 240, 255, 0.85),
+    inset 0 0 0 5px rgba(60, 30, 120, 0.55),
+    inset 0 0 0 6px rgba(0, 240, 255, 0.35),
+    inset 0 0 110px rgba(0,0,0,.7),
+    0 14px 50px rgba(0,0,0,.65),
+    0 0 34px rgba(0, 240, 255, 0.35);
+}
+.theme-neon .pot { text-shadow: 0 0 12px var(--accent); }
 
 * { box-sizing: border-box; }
 body {
@@ -169,7 +206,7 @@ input:focus, select:focus { outline: none; border-color: rgba(245, 197, 66, 0.6)
   position: relative;
   flex: 1;
   margin: 12px;
-  border: 10px solid #201510;
+  border: 10px solid var(--rail);
   border-radius: 50% / 50%;
   background:
     radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.06) 0%, transparent 45%),
