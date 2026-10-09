@@ -21,11 +21,17 @@ const SKIN_IDS = [2000, 12000]; // 스킨 2개 필수 (skin + skin+10000)
 /**
  * 메이플 아바타 렌더 URL 조립
  * @param mapleItemIds number[] — 장착 파츠의 maple_item_id 목록 (스킨 제외)
- * @param opts { resize, action, frame, proxy }
+ * @param opts { resize, action, frame, proxy, faceItemId, expression }
+ *   - expression: 얼굴 표정 API명 (예: 'cheers'). faceItemId와 함께 전달 시 해당 엔트리에 animationName 추가
  */
-export function mapleAvatarUrl(mapleItemIds = [], { resize = 3, action = 'stand1', frame = 0, proxy = false } = {}) {
+export function mapleAvatarUrl(mapleItemIds = [], { resize = 3, action = 'stand1', frame = 0, proxy = false, faceItemId = null, expression = null } = {}) {
   const entries = [...SKIN_IDS, ...mapleItemIds]
-    .map((itemId) => ({ itemId, region: MAPLE_REGION, version: MAPLE_VERSION }));
+    .map((itemId) => {
+      const e = { itemId, region: MAPLE_REGION, version: MAPLE_VERSION };
+      // 🎭 표정: 얼굴 엔트리에 animationName 추가 (13-3 Phase 1)
+      if (expression && faceItemId && itemId === faceItemId) e.animationName = expression;
+      return e;
+    });
   const payload = encodeURIComponent(JSON.stringify(entries).slice(1, -1));
   const path = `/api/character/${payload}/${action}/${frame}?resize=${resize}`;
   return proxy ? `/maple${path}` : `https://maplestory.io${path}`;
